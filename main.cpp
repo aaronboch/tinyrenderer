@@ -1,3 +1,4 @@
+#include "geometry.hpp"
 #include "tgaimage.hpp"
 
 #include <cmath>
