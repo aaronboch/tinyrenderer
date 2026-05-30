@@ -1,0 +1,47 @@
+# .clang-format
+
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+ColumnLimit: 100
+
+BreakBeforeBraces: Attach
+
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+
+PointerAlignment: Left   # int* p (instead of int *p)
+
+DerivePointerAlignment: false
+
+SpaceBeforeParens: ControlStatements
+
+BinPackParameters: false
+BinPackArguments: false
+
+AlwaysBreakTemplateDeclarations: Yes
+
+AllowShortBlocksOnASingleLine: Never
+
+FixNamespaceComments: true
+
+NamespaceIndentation: All
+
+SortIncludes: true
+
+IncludeBlocks: Regroup
+
+CompactNamespaces: false
+
+AlignAfterOpenBracket: Align
+
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+
+PenaltyBreakComment: 300
+PenaltyBreakString: 1000
+
+IndentCaseLabels: true
