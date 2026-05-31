@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <sstream>
 
 class Model {
     std::vector<vec3> v;

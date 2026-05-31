@@ -19,12 +19,33 @@ Model::Model(const std::filesystem::path& filename) {
                 v.push_back(vec3{x, y, z});
             }
         } else if (line.starts_with("f ")) {
+            std::string token;
             std::istringstream iss{line};
-            char trash;
-            int a, b, c, cnt = 0;
-            iss >> trash;
-            while (iss >> a >> trash >> b >> trash >> c) {
-                f.push_back(--a);
+            iss >> token; // throw f away
+
+            int vi = 0, vt = 0, vn = 0, cnt = 0;
+            while (iss >> token) {
+                const auto first = token.find('/');
+                const auto second = token.find('/', first + 1);
+                if (first == std::string::npos) { // just v
+                    vi = std::stoi(token);
+                } else {
+                    vi = std::stoi(token.substr(0, first));
+                    if (second == std::string::npos) { // v/vt/
+                        if (first + 1 < token.size()) {
+                            vt = std::stoi(token.substr(first + 1));
+                        }
+                    } else { // v/vt/vn or v//vt
+                        if (second > first + 1) {
+                            vt = std::stoi(token.substr(first + 1, second - first - 1));
+                        }
+                        if (second + 1 < token.size()) {
+                            vn = std::stoi(token.substr(second + 1));
+                        }
+                    }
+                }
+                std::cout << vi << vt << vn << cnt << std::endl;
+                f.push_back(--vi);
                 cnt++;
             }
             if (cnt != 3) {
