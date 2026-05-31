@@ -53,26 +53,6 @@ Model::Model(const std::filesystem::path& filename) {
             }
         }
     }
-
-    // sort tris back to front
-    // painters algorithm
-    using face = std::array<int, 3>;
-    std::vector<face> faces;
-    faces.reserve(f.size() / 3);
-    for (size_t i = 0; i < f.size(); i += 3) {
-        faces.push_back({f[i], f[i + 1], f[i + 2]});
-    }
-    std::stable_sort(faces.begin(), faces.end(), [&](const face& A, const face& B) {
-        float a_min = std::min(v[A[0]].z(), std::min(v[A[1]].z(), v[A[2]].z()));
-        float b_min = std::min(v[B[0]].z(), std::min(v[B[1]].z(), v[B[2]].z()));
-
-        return a_min < b_min;
-    });
-    for (size_t i = 0, j = 0; i < faces.size(); ++i) {
-        f[j++] = faces[i][0];
-        f[j++] = faces[i][1];
-        f[j++] = faces[i][2];
-    }
 }
 
 size_t Model::nverts() const {
