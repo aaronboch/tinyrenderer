@@ -66,8 +66,12 @@ void triangle(std::array<vec2, 3> points, std::array<vec3, 3> colors, TGAImage& 
             unsigned char b = static_cast<unsigned char>(
                 colors[0].z() * alpha + colors[1].z() * beta + colors[2].z() * gamma);
 
+            double wireframe_eps = 0.1;
             if ((alpha >= 0 && beta >= 0 && gamma >= 0)) {
-                framebuffer.set(x, y, {r, g, b});
+                // wireframe check
+                if (alpha < wireframe_eps || beta < wireframe_eps || gamma < wireframe_eps) {
+                    framebuffer.set(x, y, {r, g, b});
+                }
             }
         }
     }
