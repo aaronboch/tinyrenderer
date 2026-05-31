@@ -44,16 +44,20 @@ void triangle(std::array<vec2, 3> points, TGAImage& framebuffer, TGAColor color)
     int bbminy = std::min(std::min(points[0].y(), points[1].y()), points[2].y());
     int bbmaxx = std::max(std::max(points[0].x(), points[1].x()), points[2].x());
     int bbmaxy = std::max(std::max(points[0].y(), points[1].y()), points[2].y());
+    int total_area = tri_area(points);
+    if (total_area < 1) {
+        return;
+    }
 
     // rasterize
     for (double x = bbminx; x <= bbmaxx; x++) {
         for (double y = bbminy; y <= bbmaxy; y++) {
             // calculate barycentric coordinates
-            double a = tri_area({vec2{x, y}, points[1], points[2]});
-            double b = tri_area({points[0], vec2{x, y}, points[2]});
-            double c = tri_area({points[0], points[1], vec2{x, y}});
+            double a = tri_area({vec2{x, y}, points[1], points[2]}) / total_area;
+            double b = tri_area({points[0], vec2{x, y}, points[2]}) / total_area;
+            double c = tri_area({points[0], points[1], vec2{x, y}}) / total_area;
 
-            if ((a >= 0 && b >= 0 && c >= 0) || (a <= 0 && b <= 0 && c <= 0)) {
+            if ((a >= 0 && b >= 0 && c >= 0)) {
                 framebuffer.set(x, y, color);
             }
         }
