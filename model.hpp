@@ -1,13 +1,14 @@
 #pragma once
 #include "geometry.hpp"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
-#include <sstream>
 
 class Model {
     std::vector<vec3> v;

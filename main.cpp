@@ -5,8 +5,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
-constexpr int width = 60;
-constexpr int height = 60;
+constexpr int width = 1000;
+constexpr int height = 1000;
 
 constexpr TGAColor white = {255, 255, 255, 255}; // attention, BGRA order
 constexpr TGAColor green = {0, 255, 0, 255};
@@ -39,7 +39,7 @@ double tri_area(std::array<vec2, 3> points) {
                  points[2].x() * (points[0].y() - points[1].y()));
 }
 
-void triangle(std::array<vec2, 3> points, std::array<vec3, 3> colors, TGAImage& framebuffer) {
+void triangle(std::array<vec2, 3> points, std::array<TGAColor, 3> colors, TGAImage& framebuffer) {
     int bbminx = std::min(std::min(points[0].x(), points[1].x()), points[2].x());
     int bbminy = std::min(std::min(points[0].y(), points[1].y()), points[2].y());
     int bbmaxx = std::max(std::max(points[0].x(), points[1].x()), points[2].x());
@@ -60,18 +60,14 @@ void triangle(std::array<vec2, 3> points, std::array<vec3, 3> colors, TGAImage& 
             double gamma = tri_area({points[0], points[1], sample}) / total_area;
 
             unsigned char r = static_cast<unsigned char>(
-                colors[0].x() * alpha + colors[1].x() * beta + colors[2].x() * gamma);
+                colors[0].bgra[2] * alpha + colors[1].bgra[2] * beta + colors[2].bgra[2] * gamma);
             unsigned char g = static_cast<unsigned char>(
-                colors[0].y() * alpha + colors[1].y() * beta + colors[2].y() * gamma);
+                colors[0].bgra[1] * alpha + colors[1].bgra[1] * beta + colors[2].bgra[1] * gamma);
             unsigned char b = static_cast<unsigned char>(
-                colors[0].z() * alpha + colors[1].z() * beta + colors[2].z() * gamma);
+                colors[0].bgra[0] * alpha + colors[1].bgra[0] * beta + colors[2].bgra[0] * gamma);
 
-            double wireframe_eps = 0.1;
             if ((alpha >= 0 && beta >= 0 && gamma >= 0)) {
-                // wireframe check
-                if (alpha < wireframe_eps || beta < wireframe_eps || gamma < wireframe_eps) {
-                    framebuffer.set(x, y, {r, g, b});
-                }
+                framebuffer.set(x, y, {r, g, b});
             }
         }
     }
@@ -82,32 +78,24 @@ vec2 project(vec3 v) {
 }
 
 int main(int argc, char** argv) {
-    // if (argc != 2) {
-    //     std::cout << "Usage: " << argv[0] << " obj/<model>.obj" << std::endl;
-    //     return -1;
-    // }
-    // Model model{argv[1]};
-
-    // for (size_t i = 0; i < model.nfaces(); i++) {
-    //     auto a = project(model.vert(i, 0));
-    //     auto b = project(model.vert(i, 1));
-    //     auto c = project(model.vert(i, 2));
-    //     TGAColor rnd;
-    //     for (int c = 0; c < 3; c++) {
-    //         rnd[c] = std::rand() % 255;
-    //     }
-    //     triangle({a, b, c}, framebuffer, rnd);
-    // }
+    if (argc != 2) {
+        std::cout << "Usage: " << argv[0] << " obj/<model>.obj" << std::endl;
+        return -1;
+    }
+    Model model{argv[1]};
     TGAImage framebuffer(width, height, TGAImage::RGB);
 
-    vec2 a{17, 4};
-    vec3 a_color{0, 0, 255};
-    vec2 b{55, 39};
-    vec3 b_color{0, 255, 0};
-    vec2 c{23, 59};
-    vec3 c_color{255, 0, 0};
+    for (size_t i = 0; i < model.nfaces(); i++) {
+        auto a = project(model.vert(i, 0));
+        auto b = project(model.vert(i, 1));
+        auto c = project(model.vert(i, 2));
+        TGAColor rnd;
+        for (int c = 0; c < 3; c++) {
+            rnd[c] = std::rand() % 255;
+        }
 
-    triangle({a, b, c}, {a_color, b_color, c_color}, framebuffer);
+        triangle({a, b, c}, {rnd, rnd, rnd}, framebuffer);
+    }
 
     framebuffer.write_tga_file("framebuffer.tga");
     return 0;
