@@ -33,39 +33,27 @@ void line(int ax, int ay, int bx, int by, TGAImage& framebuffer, TGAColor color)
         y += (by - ay) / static_cast<float>(bx - ax);
     }
 }
+double tri_area(std::array<vec2, 3> points) {
+    return .5 * (points[0].x() * (points[1].y() - points[2].y()) +
+                 points[1].x() * (points[2].y() - points[0].y()) +
+                 points[2].x() * (points[0].y() - points[1].y()));
+}
 
-void triangle(
-    int ax, int ay, int bx, int by, int cx, int cy, TGAImage& framebuffer, TGAColor color) {
-    if (ay > by) {
-        std::swap(ay, by);
-        std::swap(ax, bx);
-    }
-    if (by > cy) {
-        std::swap(by, cy);
-        std::swap(bx, cx);
-    }
-    if (ay > by) {
-        std::swap(ay, by);
-        std::swap(ax, bx);
-    }
+void triangle(std::array<vec2, 3> points, TGAImage& framebuffer, TGAColor color) {
+    int bbminx = std::min(std::min(points[0].x(), points[1].x()), points[2].x());
+    int bbminy = std::min(std::min(points[0].y(), points[1].y()), points[2].y());
+    int bbmaxx = std::max(std::max(points[0].x(), points[1].x()), points[2].x());
+    int bbmaxy = std::max(std::max(points[0].y(), points[1].y()), points[2].y());
 
-    int height = cy - ay;
-    if (ay != by) {
-        int seg_height = by - ay;
-        for (int y = ay; y <= by; y++) {
-            int x1 = ax + ((cx - ax) * (y - ay)) / height;
-            int x2 = ax + ((bx - ax) * (y - ay)) / seg_height;
-            for (int x = std::min(x1, x2); x <= std::max(x1, x2); x++) {
-                framebuffer.set(x, y, color);
-            }
-        }
-    }
-    if (cy != by) {
-        int seg_height = cy - by;
-        for (int y = by; y <= cy; y++) {
-            int x1 = ax + ((cx - ax) * (y - ay)) / height;
-            int x2 = bx + ((cx - bx) * (y - by)) / seg_height;
-            for (int x = std::min(x1, x2); x <= std::max(x1, x2); x++) {
+    // rasterize
+    for (double x = bbminx; x <= bbmaxx; x++) {
+        for (double y = bbminy; y <= bbmaxy; y++) {
+            // calculate barycentric coordinates
+            double a = tri_area({vec2{x, y}, points[1], points[2]});
+            double b = tri_area({points[0], vec2{x, y}, points[2]});
+            double c = tri_area({points[0], points[1], vec2{x, y}});
+
+            if ((a >= 0 && b >= 0 && c >= 0) || (a <= 0 && b <= 0 && c <= 0)) {
                 framebuffer.set(x, y, color);
             }
         }
@@ -74,9 +62,12 @@ void triangle(
 
 int main(int argc, char** argv) {
     TGAImage framebuffer(width, height, TGAImage::RGB);
-    triangle(7, 45, 35, 100, 45, 60, framebuffer, red);
-    triangle(120, 35, 90, 5, 45, 110, framebuffer, white);
-    triangle(115, 83, 80, 90, 85, 120, framebuffer, green);
+    std::array<vec2, 3> tri1 = {vec2{7, 45}, vec2{35, 100}, vec2{45, 60}};
+    triangle(tri1, framebuffer, red);
+    std::array<vec2, 3> tri2 = {vec2{120, 35}, vec2{90, 5}, vec2{45, 110}};
+    triangle(tri2, framebuffer, white);
+    std::array<vec2, 3> tri3 = {vec2{115, 83}, vec2{80, 90}, vec2{85, 120}};
+    triangle(tri3, framebuffer, green);
     framebuffer.write_tga_file("framebuffer.tga");
     return 0;
 }

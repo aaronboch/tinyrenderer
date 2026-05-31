@@ -25,4 +25,5 @@ struct vec {
         return data[i];
     }
 };
+using vec2 = vec<2>;
 using vec3 = vec<3>;
