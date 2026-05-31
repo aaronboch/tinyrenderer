@@ -1,9 +1,12 @@
 #include "geometry.hpp"
+#include "model.hpp"
 #include "tgaimage.hpp"
 
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+constexpr int width = 1080;
+constexpr int height = 1080;
 
 constexpr TGAColor white = {255, 255, 255, 255}; // attention, BGRA order
 constexpr TGAColor green = {0, 255, 0, 255};
@@ -31,10 +34,33 @@ void line(int ax, int ay, int bx, int by, TGAImage& framebuffer, TGAColor color)
     }
 }
 
+std::tuple<int, int> project(vec3 v) {
+    return std::tuple{(v.x() + 1) * width / 2, (v.y() + 1) * height / 2};
+}
+
 int main(int argc, char** argv) {
-    constexpr int width = 64;
-    constexpr int height = 64;
+    if (argc != 2) {
+        std::cout << "Usage: " << argv[0] << " obj/<model>.obj" << std::endl;
+        return -1;
+    }
+
+    Model model{argv[1]};
     TGAImage framebuffer(width, height, TGAImage::RGB);
+
+    for (size_t i = 0; i < model.nfaces(); i++) {
+        auto [ax, ay] = project(model.vert(i, 0));
+        auto [bx, by] = project(model.vert(i, 1));
+        auto [cx, cy] = project(model.vert(i, 2));
+
+        line(ax, ay, bx, by, framebuffer, red);
+        line(bx, by, cx, cy, framebuffer, red);
+        line(cx, cy, ax, ay, framebuffer, red);
+    }
+
+    for (size_t i = 0; i < model.nverts(); i++) {
+        auto [ax, ay] = project(model.vert(i));
+        framebuffer.set(ax, ay, white);
+    }
 
     framebuffer.write_tga_file("framebuffer.tga");
     return 0;

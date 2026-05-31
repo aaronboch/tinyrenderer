@@ -13,8 +13,8 @@ class Model {
     std::vector<int> f; // face indicies to v
   public:
     Model(const std::filesystem::path& filename);
-    int nverts() const;
-    int nfaces() const;
+    size_t nverts() const;
+    size_t nfaces() const;
     vec3 vert(const int i) const; // returns vert at specific index 0 <= i < nverts()
     vec3 vert(const int iface,
               const int nthvert) const; // returns vertex of specific face 0<= i < 3

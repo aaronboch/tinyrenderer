@@ -2,26 +2,26 @@
 
 Model::Model(const std::filesystem::path& filename) {
     std::ifstream input{filename};
+    if (!input.is_open()) {
+        throw std::runtime_error("Cannot open model file");
+    }
     for (std::string line; std::getline(input, line);) {
         if (line.empty()) {
             continue;
         }
 
-        if (line.starts_with('v')) {
+        if (line.starts_with("v ")) {
             std::istringstream iss{line};
             char label;
             float x, y, z;
             iss >> label;
             if (iss >> x >> y >> z) {
-                v.emplace_back(x);
-                v.emplace_back(y);
-                v.emplace_back(z);
+                v.push_back(vec3{x, y, z});
             }
-        } else if (line.starts_with('f')) {
-            // not yet implemented
+        } else if (line.starts_with("f ")) {
             std::istringstream iss{line};
             char trash;
-            int a, b, c, cnt;
+            int a, b, c, cnt = 0;
             iss >> trash;
             while (iss >> a >> trash >> b >> trash >> c) {
                 f.push_back(--a);
@@ -35,11 +35,11 @@ Model::Model(const std::filesystem::path& filename) {
     }
 }
 
-int Model::nverts() const {
+size_t Model::nverts() const {
     return v.size();
 }
-int Model::nfaces() const {
-    return f.size();
+size_t Model::nfaces() const {
+    return f.size() / 3;
 }
 vec3 Model::vert(const int i) const {
     return v[i];
