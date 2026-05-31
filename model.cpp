@@ -44,7 +44,6 @@ Model::Model(const std::filesystem::path& filename) {
                         }
                     }
                 }
-                std::cout << vi << vt << vn << cnt << std::endl;
                 f.push_back(--vi);
                 cnt++;
             }

@@ -5,8 +5,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
-constexpr int width = 128;
-constexpr int height = 128;
+constexpr int width = 1080;
+constexpr int height = 1080;
 
 constexpr TGAColor white = {255, 255, 255, 255}; // attention, BGRA order
 constexpr TGAColor green = {0, 255, 0, 255};
@@ -60,14 +60,29 @@ void triangle(std::array<vec2, 3> points, TGAImage& framebuffer, TGAColor color)
     }
 }
 
+vec2 project(vec3 v) {
+    return {(v.x() + 1) * width / 2, (v.y() + 1) * height / 2};
+}
+
 int main(int argc, char** argv) {
+    if (argc != 2) {
+        std::cout << "Usage: " << argv[0] << " obj/<model>.obj" << std::endl;
+        return -1;
+    }
+    Model model{argv[1]};
     TGAImage framebuffer(width, height, TGAImage::RGB);
-    std::array<vec2, 3> tri1 = {vec2{7, 45}, vec2{35, 100}, vec2{45, 60}};
-    triangle(tri1, framebuffer, red);
-    std::array<vec2, 3> tri2 = {vec2{120, 35}, vec2{90, 5}, vec2{45, 110}};
-    triangle(tri2, framebuffer, white);
-    std::array<vec2, 3> tri3 = {vec2{115, 83}, vec2{80, 90}, vec2{85, 120}};
-    triangle(tri3, framebuffer, green);
+
+    for (size_t i = 0; i < model.nfaces(); i++) {
+        auto a = project(model.vert(i, 0));
+        auto b = project(model.vert(i, 1));
+        auto c = project(model.vert(i, 2));
+        TGAColor rnd;
+        for (int c = 0; c < 3; c++) {
+            rnd[c] = std::rand() % 255;
+        }
+        triangle({a, b, c}, framebuffer, rnd);
+    }
+
     framebuffer.write_tga_file("framebuffer.tga");
     return 0;
 }
