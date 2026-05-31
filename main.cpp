@@ -5,8 +5,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
-constexpr int width = 1080;
-constexpr int height = 1080;
+constexpr int width = 128;
+constexpr int height = 128;
 
 constexpr TGAColor white = {255, 255, 255, 255}; // attention, BGRA order
 constexpr TGAColor green = {0, 255, 0, 255};
@@ -34,34 +34,49 @@ void line(int ax, int ay, int bx, int by, TGAImage& framebuffer, TGAColor color)
     }
 }
 
-std::tuple<int, int> project(vec3 v) {
-    return std::tuple{(v.x() + 1) * width / 2, (v.y() + 1) * height / 2};
+void triangle(
+    int ax, int ay, int bx, int by, int cx, int cy, TGAImage& framebuffer, TGAColor color) {
+    if (ay > by) {
+        std::swap(ay, by);
+        std::swap(ax, bx);
+    }
+    if (by > cy) {
+        std::swap(by, cy);
+        std::swap(bx, cx);
+    }
+    if (ay > by) {
+        std::swap(ay, by);
+        std::swap(ax, bx);
+    }
+
+    int height = cy - ay;
+    if (ay != by) {
+        int seg_height = by - ay;
+        for (int y = ay; y <= by; y++) {
+            int x1 = ax + ((cx - ax) * (y - ay)) / height;
+            int x2 = ax + ((bx - ax) * (y - ay)) / seg_height;
+            for (int x = std::min(x1, x2); x <= std::max(x1, x2); x++) {
+                framebuffer.set(x, y, color);
+            }
+        }
+    }
+    if (cy != by) {
+        int seg_height = cy - by;
+        for (int y = by; y <= cy; y++) {
+            int x1 = ax + ((cx - ax) * (y - ay)) / height;
+            int x2 = bx + ((cx - bx) * (y - by)) / seg_height;
+            for (int x = std::min(x1, x2); x <= std::max(x1, x2); x++) {
+                framebuffer.set(x, y, color);
+            }
+        }
+    }
 }
 
 int main(int argc, char** argv) {
-    if (argc != 2) {
-        std::cout << "Usage: " << argv[0] << " obj/<model>.obj" << std::endl;
-        return -1;
-    }
-
-    Model model{argv[1]};
     TGAImage framebuffer(width, height, TGAImage::RGB);
-
-    for (size_t i = 0; i < model.nfaces(); i++) {
-        auto [ax, ay] = project(model.vert(i, 0));
-        auto [bx, by] = project(model.vert(i, 1));
-        auto [cx, cy] = project(model.vert(i, 2));
-
-        line(ax, ay, bx, by, framebuffer, red);
-        line(bx, by, cx, cy, framebuffer, red);
-        line(cx, cy, ax, ay, framebuffer, red);
-    }
-
-    for (size_t i = 0; i < model.nverts(); i++) {
-        auto [ax, ay] = project(model.vert(i));
-        framebuffer.set(ax, ay, white);
-    }
-
+    triangle(7, 45, 35, 100, 45, 60, framebuffer, red);
+    triangle(120, 35, 90, 5, 45, 110, framebuffer, white);
+    triangle(115, 83, 80, 90, 85, 120, framebuffer, green);
     framebuffer.write_tga_file("framebuffer.tga");
     return 0;
 }
