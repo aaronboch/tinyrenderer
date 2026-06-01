@@ -7,64 +7,73 @@ template <size_t n>
 requires(n > 0)
 struct vec {
     std::array<double, n> data{};
-    constexpr double& x() {
+    [[nodiscard]]
+    constexpr double& x() noexcept {
         return data[0];
     }
-    constexpr double& y() requires(n >= 2)
+    [[nodiscard]]
+    constexpr double& y() noexcept requires(n >= 2)
     {
         return data[1];
     }
-    constexpr vec<2> xy() const requires(n >= 2)
+    [[nodiscard]]
+    constexpr vec<2> xy() const noexcept requires(n >= 2)
     {
         return {data[0], data[1]};
     }
-    constexpr double& z() requires(n >= 3)
+    [[nodiscard]]
+    constexpr double& z() noexcept requires(n >= 3)
     {
         return data[2];
     }
-    constexpr vec<3> xyz() const requires(n >= 3)
+    [[nodiscard]]
+    constexpr vec<3> xyz() const noexcept requires(n >= 3)
     {
         return {data[0], data[1], data[2]};
     }
-    static consteval size_t size() {
+    static consteval size_t size() noexcept {
         return n;
     }
-    constexpr double& operator[](size_t i) {
+    constexpr double& operator[](size_t i) noexcept {
         return data[i];
     }
-    constexpr const double& operator[](size_t i) const {
+    constexpr const double& operator[](size_t i) const noexcept {
         return data[i];
     }
-
-    constexpr vec<n> operator+(const vec<n>& v) const {
+    [[nodiscard]]
+    constexpr vec<n> operator+(const vec<n>& v) const noexcept {
         vec<n> ret{};
         for (size_t i = 0; i < n; i++) {
             ret[i] = data[i] + v[i];
         }
         return ret;
     }
-    constexpr vec<n> operator-(const vec<n>& v) const {
+    [[nodiscard]]
+    constexpr vec<n> operator-(const vec<n>& v) const noexcept {
         vec<n> ret{};
         for (size_t i = 0; i < n; i++) {
             ret[i] = data[i] - v[i];
         }
         return ret;
     }
-    constexpr vec<n> operator*(double scalar) const {
+    [[nodiscard]]
+    constexpr vec<n> operator*(double scalar) const noexcept {
         vec<n> ret{};
         for (size_t i = 0; i < n; i++) {
             ret[i] = data[i] * scalar;
         }
         return ret;
     }
-    constexpr vec<n> operator/(double scalar) const {
+    [[nodiscard]]
+    constexpr vec<n> operator/(double scalar) const noexcept {
         vec<n> ret{};
         for (size_t i = 0; i < n; i++) {
             ret[i] = data[i] / scalar;
         }
         return ret;
     }
-    constexpr vec<n> operator-() const { // unary (negation)
+    [[nodiscard]]
+    constexpr vec<n> operator-() const noexcept { // unary (negation)
         vec<n> ret{};
         for (size_t i = 0; i < n; i++) {
             ret[i] = -data[i];
@@ -72,48 +81,52 @@ struct vec {
         return ret;
     }
 
-    constexpr vec<n>& operator+=(const vec<n>& v) {
+    constexpr vec<n>& operator+=(const vec<n>& v) noexcept {
         for (size_t i = 0; i < n; i++)
             data[i] += v[i];
         return *this;
     }
-    constexpr vec<n>& operator-=(const vec<n>& v) {
+    constexpr vec<n>& operator-=(const vec<n>& v) noexcept {
         for (size_t i = 0; i < n; i++)
             data[i] -= v[i];
         return *this;
     }
-    constexpr vec<n>& operator*=(double scalar) {
+    constexpr vec<n>& operator*=(double scalar) noexcept {
         for (size_t i = 0; i < n; i++)
             data[i] *= scalar;
         return *this;
     }
-    constexpr vec<n>& operator/=(double scalar) {
+    constexpr vec<n>& operator/=(double scalar) noexcept {
         for (size_t i = 0; i < n; i++)
             data[i] /= scalar;
         return *this;
     }
-    auto operator<=>(const vec<n>& v) const = default;
-    friend constexpr vec<n> operator*(double scalar, const vec<n>& v) {
+    [[nodiscard]]
+    auto operator<=>(const vec<n>& v) const noexcept = default;
+    friend constexpr vec<n> operator*(double scalar, const vec<n>& v) noexcept {
         vec<n> ret{};
         for (size_t i = 0; i < n; i++)
             ret[i] = v[i] * scalar;
         return ret;
     }
-
-    constexpr double dot(const vec<n>& v) const {
+    [[nodiscard]]
+    constexpr double dot(const vec<n>& v) const noexcept {
         double ret{};
         for (size_t i = 0; i < n; i++) {
             ret += data[i] * v[i];
         }
         return ret;
     }
-    double len() const {
+    [[nodiscard]]
+    double len() const noexcept {
         return sqrt(dot(*this));
     }
-    vec<n> norm() const {
+    [[nodiscard]]
+    vec<n> norm() const noexcept {
         return *this / len();
     }
-    constexpr vec<3> cross(const vec<3>& v) const requires(n == 3)
+    [[nodiscard]]
+    constexpr vec<3> cross(const vec<3>& v) const noexcept requires(n == 3)
     {
         return {
             // clang-format off
@@ -133,15 +146,16 @@ requires(rows > 0 && cols > 0)
 struct mat {
     std::array<vec<cols>, rows> data{};
 
-    constexpr double& operator()(size_t row, size_t col) {
+    constexpr double& operator()(size_t row, size_t col) noexcept {
         return data[row][col];
     }
-    constexpr const double& operator()(size_t row, size_t col) const {
+    constexpr const double& operator()(size_t row, size_t col) const noexcept {
         return data[row][col];
     }
-    auto operator<=>(const mat<rows, cols>& other) const = default;
-
-    static constexpr mat<rows, cols> identity() requires(cols == rows)
+    [[nodiscard]]
+    auto operator<=>(const mat<rows, cols>& other) const noexcept = default;
+    [[nodiscard]]
+    static constexpr mat<rows, cols> identity() noexcept requires(cols == rows)
     {
         mat<rows, cols> ret{};
         for (size_t i = 0; i < cols; i++) {
@@ -149,8 +163,8 @@ struct mat {
         }
         return ret;
     }
-
-    constexpr mat<cols, rows> transpose() const {
+    [[nodiscard]]
+    constexpr mat<cols, rows> transpose() const noexcept {
         mat<cols, rows> ret{};
         for (size_t i = 0; i < cols; i++) {
             for (size_t j = 0; j < rows; j++) {
@@ -159,9 +173,9 @@ struct mat {
         }
         return ret;
     }
-
     template <size_t k>
-    constexpr mat<rows, k> operator*(const mat<cols, k>& other) const {
+    [[nodiscard]]
+    constexpr mat<rows, k> operator*(const mat<cols, k>& other) const noexcept {
         mat<rows, k> ret{};
         for (size_t i = 0; i < rows; i++) {
             for (size_t j = 0; j < k; j++) {
@@ -172,8 +186,8 @@ struct mat {
         }
         return ret;
     }
-
-    constexpr vec<rows> operator*(const vec<cols>& v) const {
+    [[nodiscard]]
+    constexpr vec<rows> operator*(const vec<cols>& v) const noexcept {
         vec<rows> ret;
         for (size_t i = 0; i < rows; i++) {
             for (size_t j = 0; j < cols; j++) {
@@ -182,17 +196,17 @@ struct mat {
         }
         return ret;
     }
-
-    constexpr vec<cols>& operator[](size_t row) {
+    constexpr vec<cols>& operator[](size_t row) noexcept {
         return data[row];
     }
 
-    const constexpr vec<cols>& operator[](size_t row) const {
+    const constexpr vec<cols>& operator[](size_t row) const noexcept {
         return data[row];
     }
-
+    [[nodiscard]]
     constexpr mat<rows, cols> inverse() const requires(rows == cols)
     {
+        auto constexpr c_abs = [](double x) constexpr noexcept -> double { return x < 0 ? -x : x; };
         // S1. build augmented M = [this | I]
         mat I = identity();
         mat<rows, 2 * cols> M{};
@@ -207,7 +221,7 @@ struct mat {
             // find pivot
             auto pivotRow = col;
             for (size_t r = col + 1; r < cols; r++) {
-                if (std::abs(M(r, col)) > std::abs(M(pivotRow, col))) {
+                if (c_abs(M(r, col)) > c_abs(M(pivotRow, col))) {
                     pivotRow = r;
                 }
             }

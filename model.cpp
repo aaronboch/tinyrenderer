@@ -1,5 +1,10 @@
 #include "model.hpp"
 
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+
 Model::Model(const std::filesystem::path& filename) {
     std::ifstream input{filename};
     if (!input.is_open()) {
@@ -55,15 +60,15 @@ Model::Model(const std::filesystem::path& filename) {
     }
 }
 
-size_t Model::nverts() const {
+size_t Model::nverts() const noexcept {
     return v.size();
 }
-size_t Model::nfaces() const {
+size_t Model::nfaces() const noexcept {
     return f.size() / 3;
 }
-vec3 Model::vert(const int i) const {
+vec3 Model::vert(int i) const noexcept {
     return v[i];
 } // returns vert at specific index 0 <= i < nverts()
-vec3 Model::vert(const int iface, const int nthvert) const {
+vec3 Model::vert(int iface, int nthvert) const noexcept {
     return v[f[iface * 3 + nthvert]];
 } // returns vertex of specific face 0<= i < 3

@@ -2,9 +2,10 @@
 #include "model.hpp"
 #include "tgaimage.hpp"
 
-#include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
+
 constexpr int width = 1000;
 constexpr int height = 1000;
 
