@@ -46,8 +46,10 @@ void triangle(std::array<vec3, 3> points,
             if ((alpha >= 0 && beta >= 0 && gamma >= 0)) {
                 unsigned char z = static_cast<unsigned char>(
                     alpha * points[0].z() + beta * points[1].z() + gamma * points[2].z());
-                zbuffer.set(x, y, {z});
-                framebuffer.set(x, y, color);
+                if (zbuffer.get(x, y)[0] < z) {
+                    zbuffer.set(x, y, {z});
+                    framebuffer.set(x, y, color);
+                }
             }
         }
     }
