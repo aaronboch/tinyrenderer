@@ -8,6 +8,7 @@ UseTab: Never
 ColumnLimit: 100
 
 BreakBeforeBraces: Attach
+RequiresClausePosition: WithPreceding
 
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
