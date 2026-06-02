@@ -9,11 +9,22 @@
 constexpr int width = 1000;
 constexpr int height = 1000;
 
-constexpr TGAColor white = {255, 255, 255, 255}; // attention, BGRA order
-constexpr TGAColor green = {0, 255, 0, 255};
-constexpr TGAColor red = {0, 0, 255, 255};
-constexpr TGAColor blue = {255, 128, 64, 255};
-constexpr TGAColor yellow = {0, 200, 255, 255};
+// constexpr TGAColor white = {255, 255, 255, 255}; // attention, BGRA order
+// constexpr TGAColor green = {0, 255, 0, 255};
+// constexpr TGAColor red = {0, 0, 255, 255};
+// constexpr TGAColor blue = {255, 128, 64, 255};
+// constexpr TGAColor yellow = {0, 200, 255, 255};
+
+vec3 rot(vec3 v) {
+    constexpr double a = M_PI / 6;
+    mat3 Ry = {{{{std::cos(a), 0, std::sin(a)}, {0, 1, 0}, {-std::sin(a), 0, std::cos(a)}}}};
+    return Ry * v;
+}
+
+vec3 persp(vec3 v) {
+    constexpr double c = 3.;
+    return v * (1 / (1 - (v.z() / c)));
+}
 
 double tri_area(std::array<vec3, 3> points) {
     return .5 * (points[0].x() * (points[1].y() - points[2].y()) +
@@ -48,7 +59,7 @@ void triangle(std::array<vec3, 3> points,
                 unsigned char z = static_cast<unsigned char>(
                     alpha * points[0].z() + beta * points[1].z() + gamma * points[2].z());
                 if (zbuffer.get(x, y)[0] < z) {
-                    zbuffer.set(x, y, {z});
+                    zbuffer.set(x, y, {{z}});
                     framebuffer.set(x, y, color);
                 }
             }
@@ -70,9 +81,9 @@ int main(int argc, char** argv) {
     TGAImage zbuffer(width, height, TGAImage::GRAYSCALE);
 
     for (size_t i = 0; i < model.nfaces(); i++) {
-        auto a = project(model.vert(i, 0));
-        auto b = project(model.vert(i, 1));
-        auto c = project(model.vert(i, 2));
+        auto a = project(persp(rot(model.vert(i, 0))));
+        auto b = project(persp(rot(model.vert(i, 1))));
+        auto c = project(persp(rot(model.vert(i, 2))));
         TGAColor rnd;
         for (int c = 0; c < 3; c++) {
             rnd[c] = std::rand() % 255;
