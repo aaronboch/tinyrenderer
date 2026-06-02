@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 #include <cmath>
-#include <stdexcept>
+#include <optional>
 
 template <size_t n>
 requires(n > 0)
@@ -69,14 +69,6 @@ struct vec {
         }
         return ret;
     }
-    [[nodiscard]]
-    constexpr double operator*(vec<n> other) const noexcept {
-        double ret{};
-        for (size_t i = 0; i < n; i++) {
-            ret += data[i] * other[i];
-        }
-        return ret;
-    }
 
     [[nodiscard]]
     constexpr vec<n> operator/(double scalar) const noexcept {
@@ -117,6 +109,7 @@ struct vec {
     }
     [[nodiscard]]
     auto operator<=>(const vec<n>& v) const noexcept = default;
+    [[nodiscard]]
     friend constexpr vec<n> operator*(double scalar, const vec<n>& v) noexcept {
         vec<n> ret{};
         for (size_t i = 0; i < n; i++)
@@ -228,7 +221,7 @@ struct mat {
         return data[row];
     }
 
-    const constexpr vec<cols>& operator[](size_t row) const noexcept {
+    constexpr const vec<cols>& operator[](size_t row) const noexcept {
         return data[row];
     }
     [[nodiscard]]
@@ -255,7 +248,7 @@ struct mat {
         }
     }
     [[nodiscard]]
-    constexpr mat<rows, cols> inverse() const requires(rows == cols)
+    constexpr std::optional<mat<rows, cols>> inverse() const requires(rows == cols)
     {
         auto constexpr c_abs = [](double x) constexpr noexcept -> double { return x < 0 ? -x : x; };
         // S1. build augmented M = [this | I]
@@ -277,7 +270,7 @@ struct mat {
                 }
             }
             if (M(pivotRow, col) == 0) { // no singular matrix
-                throw std::runtime_error("Matrix is not invertible");
+                return std::nullopt;
             }
             // swap cur row with pivot row
             std::swap(M[col], M[pivotRow]);
@@ -307,43 +300,13 @@ struct mat {
         }
         return inv;
     }
+
     [[nodiscard]]
-    constexpr double minor(size_t r, size_t c) const requires(rows == cols)
+    constexpr std::optional<mat<rows, cols>> inverse_transpose() const requires(rows == cols)
     {
-        if constexpr (rows == 1) {
-            return 1;
-        } else {
-            mat<rows - 1, cols - 1> sub{};
-            for (size_t i = 0, si = 0; i < rows; i++) {
-                if (i == r) continue;
-                for (size_t j = 0, sj = 0; j < cols; j++) {
-                    if (j == c) continue;
-                    sub(si, sj) = data[i][j];
-                    sj++;
-                }
-                si++;
-            }
-            return sub.det();
-        }
-    }
-    [[nodiscard]]
-    constexpr double cofactor(size_t r, size_t c) const requires(rows == cols)
-    {
-        double m = minor(r, c);
-        return ((r + c) % 2 == 0) ? m : -m;
-    }
-    [[nodiscard]]
-    constexpr mat<rows, cols> inverse_transpose() const requires(rows == cols)
-    {
-        if constexpr (rows == 1) {
-            return {{{{1.0 / data[0][0]}}}};
-        } else {
-            mat<rows, cols> cof{};
-            for (size_t i = rows; i--;)
-                for (size_t j = cols; j--;)
-                    cof[i][j] = cofactor(i, j);
-            return cof / (cof[0] * (*this)[0]);
-        }
+        auto inv = inverse();
+        if (!inv) return std::nullopt;
+        return inv->transpose();
     }
 };
 

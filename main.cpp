@@ -67,12 +67,15 @@ void rasterize(std::array<vec4, 3> clip,
 #pragma omp parallel for
     for (int x = xmin; x <= xmax; x++) {
         for (int y = ymin; y <= ymax; y++) {
-            vec3 bc = ABC.inverse_transpose() * vec3{static_cast<double>(x),
-                                                     static_cast<double>(y),
-                                                     1.}; // barycentric coords {x,y} w.r.t
+            auto ABC_invtr = ABC.inverse_transpose();
+            if (!ABC_invtr)
+                continue;
+            vec3 bc = *ABC_invtr * vec3{static_cast<double>(x),
+                                        static_cast<double>(y),
+                                        1.}; // barycentric coords {x,y} w.r.t
             if (bc.x() < 0 || bc.y() < 0 || bc.z() < 0)
                 continue;
-            double z = bc * vec3{ndc[0].z(), ndc[1].z(), ndc[2].z()};
+            double z = bc.dot(vec3{ndc[0].z(), ndc[1].z(), ndc[2].z()});
             if (z <= zbuffer[x + y * framebuffer.width()])
                 continue;
             zbuffer[x + y * framebuffer.width()] = z;
@@ -101,12 +104,12 @@ int main(int argc, char** argv) {
     std::vector<double> zbuffer(width * height, -std::numeric_limits<double>::max());
 
     Model model{argv[1]};
-
+    auto ComposedTransform = Perspective * ModelView;
     for (size_t i = 0; i < model.nfaces(); i++) {
         std::array<vec4, 3> clip;
         for (int d : {0, 1, 2}) {
             vec3 v = model.vert(i, d);
-            clip[d] = Perspective * ModelView * vec4{v.x(), v.y(), v.z(), 1.};
+            clip[d] = ComposedTransform * vec4{v.x(), v.y(), v.z(), 1.};
         }
 
         TGAColor rnd;
