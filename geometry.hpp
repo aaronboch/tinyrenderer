@@ -31,6 +31,11 @@ struct vec {
     {
         return {data[0], data[1], data[2]};
     }
+    [[nodiscard]]
+    constexpr double& w() noexcept requires(n >= 4)
+    {
+        return data[3];
+    }
     static consteval size_t size() noexcept {
         return n;
     }
@@ -64,6 +69,15 @@ struct vec {
         }
         return ret;
     }
+    [[nodiscard]]
+    constexpr double operator*(vec<n> other) const noexcept {
+        double ret{};
+        for (size_t i = 0; i < n; i++) {
+            ret += data[i] * other[i];
+        }
+        return ret;
+    }
+
     [[nodiscard]]
     constexpr vec<n> operator/(double scalar) const noexcept {
         vec<n> ret{};
@@ -140,6 +154,7 @@ struct vec {
 
 using vec2 = vec<2>;
 using vec3 = vec<3>;
+using vec4 = vec<4>;
 
 template <size_t rows, size_t cols>
 requires(rows > 0 && cols > 0)
@@ -173,6 +188,18 @@ struct mat {
         }
         return ret;
     }
+
+    [[nodiscard]]
+    constexpr mat<rows, cols> operator/(double scalar) const noexcept {
+        mat<rows, cols> ret{};
+        for (size_t i = 0; i < rows; i++) {
+            for (size_t j = 0; j < cols; j++) {
+                ret(i, j) = data[i][j] / scalar;
+            }
+        }
+        return ret;
+    }
+
     template <size_t k>
     [[nodiscard]]
     constexpr mat<rows, k> operator*(const mat<cols, k>& other) const noexcept {
@@ -186,6 +213,7 @@ struct mat {
         }
         return ret;
     }
+
     [[nodiscard]]
     constexpr vec<rows> operator*(const vec<cols>& v) const noexcept {
         vec<rows> ret;
@@ -202,6 +230,29 @@ struct mat {
 
     const constexpr vec<cols>& operator[](size_t row) const noexcept {
         return data[row];
+    }
+    [[nodiscard]]
+    constexpr double det() const requires(rows == cols)
+    {
+        if constexpr (rows == 1) {
+            return data[0][0];
+        } else {
+            double result = 0;
+            for (size_t col = 0; col < cols; col++) {
+                mat<rows - 1, cols - 1> sub{};
+                for (size_t i = 1; i < rows; i++) {
+                    for (size_t j = 0; j < col; j++) {
+                        sub(i - 1, j) = data[i][j];
+                    }
+                    for (size_t j = col + 1; j < cols; j++) {
+                        sub(i - 1, j - 1) = data[i][j];
+                    }
+                }
+                double sign = (col % 2 == 0) ? 1 : -1;
+                result += sign * data[0][col] * sub.det();
+            }
+            return result;
+        }
     }
     [[nodiscard]]
     constexpr mat<rows, cols> inverse() const requires(rows == cols)
@@ -255,6 +306,44 @@ struct mat {
             }
         }
         return inv;
+    }
+    [[nodiscard]]
+    constexpr double minor(size_t r, size_t c) const requires(rows == cols)
+    {
+        if constexpr (rows == 1) {
+            return 1;
+        } else {
+            mat<rows - 1, cols - 1> sub{};
+            for (size_t i = 0, si = 0; i < rows; i++) {
+                if (i == r) continue;
+                for (size_t j = 0, sj = 0; j < cols; j++) {
+                    if (j == c) continue;
+                    sub(si, sj) = data[i][j];
+                    sj++;
+                }
+                si++;
+            }
+            return sub.det();
+        }
+    }
+    [[nodiscard]]
+    constexpr double cofactor(size_t r, size_t c) const requires(rows == cols)
+    {
+        double m = minor(r, c);
+        return ((r + c) % 2 == 0) ? m : -m;
+    }
+    [[nodiscard]]
+    constexpr mat<rows, cols> inverse_transpose() const requires(rows == cols)
+    {
+        if constexpr (rows == 1) {
+            return {{{{1.0 / data[0][0]}}}};
+        } else {
+            mat<rows, cols> cof{};
+            for (size_t i = rows; i--;)
+                for (size_t j = cols; j--;)
+                    cof[i][j] = cofactor(i, j);
+            return cof / (cof[0] * (*this)[0]);
+        }
     }
 };
 

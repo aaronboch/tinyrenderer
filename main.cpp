@@ -2,14 +2,13 @@
 #include "model.hpp"
 #include "tgaimage.hpp"
 
+#include <algorithm>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
 #include <limits>
-#include <memory>
 
-constexpr int width = 1000;
-constexpr int height = 1000;
+mat4 ModelView{}, Viewport{}, Perspective{};
 
 // constexpr TGAColor white = {255, 255, 255, 255}; // attention, BGRA order
 // constexpr TGAColor green = {0, 255, 0, 255};
@@ -17,61 +16,69 @@ constexpr int height = 1000;
 // constexpr TGAColor blue = {255, 128, 64, 255};
 // constexpr TGAColor yellow = {0, 200, 255, 255};
 
-vec3 rot(vec3 v) {
-    constexpr double a = M_PI / 6;
-    mat3 Ry = {{{{std::cos(a), 0, std::sin(a)}, {0, 1, 0}, {-std::sin(a), 0, std::cos(a)}}}};
-    return Ry * v;
+void perspective(double f) {
+    Perspective = {{{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, -1 / f, 1}}}};
+}
+void viewport(int x, int y, int w, int h) {
+    Viewport = {
+        {{{w / 2., 0, 0, x + w / 2.}, {0, h / 2., 0, y + h / 2.}, {0, 0, 1, 0}, {0, 0, 0, 1}}}};
+}
+void lookat(vec3 eye, vec3 center, vec3 up) {
+    vec3 n = (eye - center).norm();
+    vec3 l = up.cross(n).norm();
+    vec3 m = n.cross(l).norm();
+    ModelView = mat4{{{{l.x(), l.y(), l.z(), 0},
+                       {m.x(), m.y(), m.z(), 0},
+                       {n.x(), n.y(), n.z(), 0},
+                       {0, 0, 0, 1}}}} *
+                mat4{{{{1, 0, 0, -center.x()},
+                       {0, 1, 0, -center.y()},
+                       {0, 0, 1, -center.z()},
+                       {0, 0, 0, 1}}}};
 }
 
-vec3 persp(vec3 v) {
-    constexpr double c = 3.;
-    return v * (1 / (1 - (v.z() / c)));
-}
-
-double tri_area(std::array<vec3, 3> points) {
-    return .5 * (points[0].x() * (points[1].y() - points[2].y()) +
-                 points[1].x() * (points[2].y() - points[0].y()) +
-                 points[2].x() * (points[0].y() - points[1].y()));
-}
-
-void triangle(std::array<vec3, 3> points,
-              TGAImage& framebuffer,
-              std::array<std::array<double, width>, height>& zbuffer,
-              TGAColor color) {
-    int bbminx = std::max(0., std::min(std::min(points[0].x(), points[1].x()), points[2].x()));
-    int bbminy = std::max(0., std::min(std::min(points[0].y(), points[1].y()), points[2].y()));
-    int bbmaxx = std::min(static_cast<double>(width - 1),
-                          std::max(std::max(points[0].x(), points[1].x()), points[2].x()));
-    int bbmaxy = std::min(static_cast<double>(height - 1),
-                          std::max(std::max(points[0].y(), points[1].y()), points[2].y()));
-    double total_area = tri_area(points);
-    if (total_area < 1) {
+void rasterize(std::array<vec4, 3> clip,
+               TGAImage& framebuffer,
+               std::vector<double>& zbuffer,
+               TGAColor color) {
+    std::array<vec4, 3> ndc = {clip[0] / clip[0].w(), clip[1] / clip[1].w(), clip[2] / clip[2].w()};
+    std::array<vec2, 3> screen = {
+        (Viewport * ndc[0]).xy(), (Viewport * ndc[1]).xy(), (Viewport * ndc[2]).xy()};
+    mat3 ABC = {{{{screen[0].x(), screen[0].y(), 1.},
+                  {screen[1].x(), screen[1].y(), 1.},
+                  {screen[2].x(), screen[2].y(), 1.}}}};
+    if (ABC.det() < 1) { // backface culling + discard anything smaller than 1 pixel
         return;
     }
 
+    auto mmx = std::minmax({screen[0].x(), screen[1].x(), screen[2].x()});
+    auto mmy = std::minmax({screen[0].y(), screen[1].y(), screen[2].y()});
+
+    int bbminx = static_cast<int>(std::floor(mmx.first));
+    int bbmaxx = static_cast<int>(std::ceil(mmx.second));
+    int bbminy = static_cast<int>(std::floor(mmy.first));
+    int bbmaxy = static_cast<int>(std::ceil(mmy.second));
+
+    int xmin = std::max(bbminx, 0);
+    int xmax = std::min(bbmaxx, framebuffer.width() - 1);
+    int ymin = std::max(bbminy, 0);
+    int ymax = std::min(bbmaxy, framebuffer.height() - 1);
 // rasterize
 #pragma omp parallel for
-    for (int x = bbminx; x <= bbmaxx; x++) {
-        for (int y = bbminy; y <= bbmaxy; y++) {
-            vec3 sample{static_cast<double>(x), static_cast<double>(y), 0};
-            // calculate barycentric coordinates
-            double alpha = tri_area({sample, points[1], points[2]}) / total_area;
-            double beta = tri_area({points[0], sample, points[2]}) / total_area;
-            double gamma = tri_area({points[0], points[1], sample}) / total_area;
-
-            if ((alpha >= 0 && beta >= 0 && gamma >= 0)) {
-                double z = alpha * points[0].z() + beta * points[1].z() + gamma * points[2].z();
-                if (zbuffer[x][y] < z) {
-                    zbuffer[x][y] = z;
-                    framebuffer.set(x, y, color);
-                }
-            }
+    for (int x = xmin; x <= xmax; x++) {
+        for (int y = ymin; y <= ymax; y++) {
+            vec3 bc = ABC.inverse_transpose() * vec3{static_cast<double>(x),
+                                                     static_cast<double>(y),
+                                                     1.}; // barycentric coords {x,y} w.r.t
+            if (bc.x() < 0 || bc.y() < 0 || bc.z() < 0)
+                continue;
+            double z = bc * vec3{ndc[0].z(), ndc[1].z(), ndc[2].z()};
+            if (z <= zbuffer[x + y * framebuffer.width()])
+                continue;
+            zbuffer[x + y * framebuffer.width()] = z;
+            framebuffer.set(x, y, color);
         }
     }
-}
-
-vec3 project(vec3 v) {
-    return {(v.x() + 1) * width / 2, (v.y() + 1) * height / 2, v.z()};
 }
 
 int main(int argc, char** argv) {
@@ -79,54 +86,36 @@ int main(int argc, char** argv) {
         std::cout << "Usage: " << argv[0] << " obj/<model>.obj" << std::endl;
         return -1;
     }
-    Model model{argv[1]};
+
+    constexpr int width = 800; // output image size
+    constexpr int height = 800;
+    constexpr vec3 eye{-1, 0, 2};   // camera position
+    constexpr vec3 center{0, 0, 0}; // camera direction
+    constexpr vec3 up{0, 1, 0};     // camera up vector
+
+    lookat(eye, center, up);           // build the ModelView   matrix
+    perspective((eye - center).len()); // build the Perspective matrix
+    viewport(width / 16, height / 16, width * 7 / 8, height * 7 / 8); // build the Viewport matrix
+
     TGAImage framebuffer(width, height, TGAImage::RGB);
-    std::array<std::array<double, height>, width> zbuffer{};
-    for (auto& row : zbuffer)
-        row.fill(std::numeric_limits<double>::lowest());
+    std::vector<double> zbuffer(width * height, -std::numeric_limits<double>::max());
+
+    Model model{argv[1]};
 
     for (size_t i = 0; i < model.nfaces(); i++) {
-        auto a = project(persp(rot(model.vert(i, 0))));
-        auto b = project(persp(rot(model.vert(i, 1))));
-        auto c = project(persp(rot(model.vert(i, 2))));
+        std::array<vec4, 3> clip;
+        for (int d : {0, 1, 2}) {
+            vec3 v = model.vert(i, d);
+            clip[d] = Perspective * ModelView * vec4{v.x(), v.y(), v.z(), 1.};
+        }
+
         TGAColor rnd;
         for (int c = 0; c < 3; c++) {
             rnd[c] = std::rand() % 255;
         }
-
-        triangle({a, b, c}, framebuffer, zbuffer, rnd);
+        rasterize(clip, framebuffer, zbuffer, rnd);
     }
 
-    TGAImage zbuffer_img(width, height, TGAImage::GRAYSCALE);
-
-    // find min/max
-    double zmin = std::numeric_limits<double>::max();
-    double zmax = std::numeric_limits<double>::lowest();
-    for (size_t x = 0; x < width; x++)
-        for (size_t y = 0; y < height; y++) {
-            double z = zbuffer[x][y];
-            if (z != std::numeric_limits<double>::lowest()) { // skip uninitialized
-                if (z < zmin)
-                    zmin = z;
-                if (z > zmax)
-                    zmax = z;
-            }
-        }
-
-    // write remapped
-    double range = zmax - zmin;
-    for (size_t x = 0; x < width; x++)
-        for (size_t y = 0; y < height; y++) {
-            double z = zbuffer[x][y];
-            if (z == std::numeric_limits<double>::lowest()) {
-                zbuffer_img.set(x, y, TGAColor{0, 0, 0, 0, 1});
-            } else {
-                uint8_t val = (z - zmin) / range * 255;
-                zbuffer_img.set(x, y, TGAColor{val, 0, 0, 0, 1});
-            }
-        }
-
     framebuffer.write_tga_file("framebuffer.tga");
-    zbuffer_img.write_tga_file("zbuffer.tga");
     return 0;
 }
