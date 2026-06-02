@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <limits>
+#include <memory>
 
 constexpr int width = 1000;
 constexpr int height = 1000;
@@ -34,12 +36,14 @@ double tri_area(std::array<vec3, 3> points) {
 
 void triangle(std::array<vec3, 3> points,
               TGAImage& framebuffer,
-              TGAImage& zbuffer,
+              std::array<std::array<double, width>, height>& zbuffer,
               TGAColor color) {
-    int bbminx = std::min(std::min(points[0].x(), points[1].x()), points[2].x());
-    int bbminy = std::min(std::min(points[0].y(), points[1].y()), points[2].y());
-    int bbmaxx = std::max(std::max(points[0].x(), points[1].x()), points[2].x());
-    int bbmaxy = std::max(std::max(points[0].y(), points[1].y()), points[2].y());
+    int bbminx = std::max(0., std::min(std::min(points[0].x(), points[1].x()), points[2].x()));
+    int bbminy = std::max(0., std::min(std::min(points[0].y(), points[1].y()), points[2].y()));
+    int bbmaxx = std::min(static_cast<double>(width - 1),
+                          std::max(std::max(points[0].x(), points[1].x()), points[2].x()));
+    int bbmaxy = std::min(static_cast<double>(height - 1),
+                          std::max(std::max(points[0].y(), points[1].y()), points[2].y()));
     double total_area = tri_area(points);
     if (total_area < 1) {
         return;
@@ -56,10 +60,9 @@ void triangle(std::array<vec3, 3> points,
             double gamma = tri_area({points[0], points[1], sample}) / total_area;
 
             if ((alpha >= 0 && beta >= 0 && gamma >= 0)) {
-                unsigned char z = static_cast<unsigned char>(
-                    alpha * points[0].z() + beta * points[1].z() + gamma * points[2].z());
-                if (zbuffer.get(x, y)[0] < z) {
-                    zbuffer.set(x, y, {{z}});
+                double z = alpha * points[0].z() + beta * points[1].z() + gamma * points[2].z();
+                if (zbuffer[x][y] < z) {
+                    zbuffer[x][y] = z;
                     framebuffer.set(x, y, color);
                 }
             }
@@ -68,7 +71,7 @@ void triangle(std::array<vec3, 3> points,
 }
 
 vec3 project(vec3 v) {
-    return {(v.x() + 1) * width / 2, (v.y() + 1) * height / 2, (v.z() + 1.) * 255. / 2};
+    return {(v.x() + 1) * width / 2, (v.y() + 1) * height / 2, v.z()};
 }
 
 int main(int argc, char** argv) {
@@ -78,7 +81,9 @@ int main(int argc, char** argv) {
     }
     Model model{argv[1]};
     TGAImage framebuffer(width, height, TGAImage::RGB);
-    TGAImage zbuffer(width, height, TGAImage::GRAYSCALE);
+    std::array<std::array<double, height>, width> zbuffer{};
+    for (auto& row : zbuffer)
+        row.fill(std::numeric_limits<double>::lowest());
 
     for (size_t i = 0; i < model.nfaces(); i++) {
         auto a = project(persp(rot(model.vert(i, 0))));
@@ -92,7 +97,36 @@ int main(int argc, char** argv) {
         triangle({a, b, c}, framebuffer, zbuffer, rnd);
     }
 
+    TGAImage zbuffer_img(width, height, TGAImage::GRAYSCALE);
+
+    // find min/max
+    double zmin = std::numeric_limits<double>::max();
+    double zmax = std::numeric_limits<double>::lowest();
+    for (size_t x = 0; x < width; x++)
+        for (size_t y = 0; y < height; y++) {
+            double z = zbuffer[x][y];
+            if (z != std::numeric_limits<double>::lowest()) { // skip uninitialized
+                if (z < zmin)
+                    zmin = z;
+                if (z > zmax)
+                    zmax = z;
+            }
+        }
+
+    // write remapped
+    double range = zmax - zmin;
+    for (size_t x = 0; x < width; x++)
+        for (size_t y = 0; y < height; y++) {
+            double z = zbuffer[x][y];
+            if (z == std::numeric_limits<double>::lowest()) {
+                zbuffer_img.set(x, y, TGAColor{0, 0, 0, 0, 1});
+            } else {
+                uint8_t val = (z - zmin) / range * 255;
+                zbuffer_img.set(x, y, TGAColor{val, 0, 0, 0, 1});
+            }
+        }
+
     framebuffer.write_tga_file("framebuffer.tga");
-    zbuffer.write_tga_file("zbuffer.tga");
+    zbuffer_img.write_tga_file("zbuffer.tga");
     return 0;
 }
