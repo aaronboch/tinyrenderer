@@ -12,12 +12,26 @@ struct vec {
         return data[0];
     }
     [[nodiscard]]
+    constexpr const double& x() const noexcept {
+        return data[0];
+    }
+    [[nodiscard]]
     constexpr double& y() noexcept requires(n >= 2)
     {
         return data[1];
     }
     [[nodiscard]]
-    constexpr vec<2> xy() const noexcept requires(n >= 2)
+    constexpr const double& y() const noexcept requires(n >= 2)
+    {
+        return data[1];
+    }
+    [[nodiscard]]
+    constexpr vec<2> xy() noexcept requires(n >= 2)
+    {
+        return {data[0], data[1]};
+    }
+    [[nodiscard]]
+    constexpr const vec<2> xy() const noexcept requires(n >= 2)
     {
         return {data[0], data[1]};
     }
@@ -27,12 +41,27 @@ struct vec {
         return data[2];
     }
     [[nodiscard]]
-    constexpr vec<3> xyz() const noexcept requires(n >= 3)
+    constexpr const double& z() const noexcept requires(n >= 3)
+    {
+        return data[2];
+    }
+    [[nodiscard]]
+    constexpr vec<3> xyz() noexcept requires(n >= 3)
+    {
+        return {data[0], data[1], data[2]};
+    }
+    [[nodiscard]]
+    constexpr const vec<3> xyz() const noexcept requires(n >= 3)
     {
         return {data[0], data[1], data[2]};
     }
     [[nodiscard]]
     constexpr double& w() noexcept requires(n >= 4)
+    {
+        return data[3];
+    }
+    [[nodiscard]]
+    constexpr const double& w() const noexcept requires(n >= 4)
     {
         return data[3];
     }
@@ -305,7 +334,8 @@ struct mat {
     constexpr std::optional<mat<rows, cols>> inverse_transpose() const requires(rows == cols)
     {
         auto inv = inverse();
-        if (!inv) return std::nullopt;
+        if (!inv)
+            return std::nullopt;
         return inv->transpose();
     }
 };
