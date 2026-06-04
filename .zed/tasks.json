@@ -1,0 +1,34 @@
+[
+  {
+    "label": "build-project",
+    "command": "cmake -B build/release && cmake --build build/release -j",
+  },
+  {
+    "label": "build-debug-project",
+    "command": "cmake -B build/debug -DCMAKE_BUILD_TYPE=Debug && cmake --build build/debug -j",
+  },
+  {
+    "label": "clean",
+    "command": "cmake --build build/release --target clean && cmake --build build/debug --target clean",
+  },
+  {
+    "label": "clean-release",
+    "command": "cmake --build build/release --target clean",
+  },
+  {
+    "label": "clean-debug",
+    "command": "cmake --build build/debug --target clean",
+  },
+  {
+    "label": "deep-clean",
+    "command": "rm -rf build",
+  },
+  {
+    "label": "build-run-project",
+    "command": "cmake -B build/release && cmake --build build/release -j && ./run-project.sh",
+  },
+  {
+    "label": "run-project",
+    "command": "./run-project.sh",
+  },
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "label": "debug",
+    "adapter": "CodeLLDB",
+    "request": "launch",
+    "program": "build/debug/tinyrenderer",
+    "args": ["./obj/african_head.obj"],
+    "build": "build-debug-project",
+  },
+]
