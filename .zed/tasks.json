@@ -25,10 +25,10 @@
   },
   {
     "label": "build-run-project",
-    "command": "cmake -B build/release && cmake --build build/release -j && ./run-project.sh",
+    "command": "cmake -B build/release && cmake --build build/release -j && ./run-project.fish",
   },
   {
     "label": "run-project",
-    "command": "./run-project.sh",
+    "command": "./run-project.fish",
   },
 ]
