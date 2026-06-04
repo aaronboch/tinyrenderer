@@ -27,6 +27,9 @@ find_package(OpenMP COMPONENTS CXX)
 
 set(SOURCES main.cpp tgaimage.cpp model.cpp our_gl.cpp)
 
+set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+list(TRANSFORM SOURCES PREPEND "${SRC_DIR}/")
+
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} PRIVATE $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)
 
