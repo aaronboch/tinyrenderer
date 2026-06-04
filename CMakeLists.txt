@@ -24,6 +24,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU|Intel")
 endif()
 
 find_package(OpenMP COMPONENTS CXX)
+find_package(raylib REQUIRED)
 
 set(SOURCES main.cpp model.cpp our_gl.cpp)
 
@@ -31,5 +32,5 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 list(TRANSFORM SOURCES PREPEND "${SRC_DIR}/")
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} PRIVATE $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)
+target_link_libraries(${PROJECT_NAME} PRIVATE raylib $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)
 file(GENERATE OUTPUT .gitignore CONTENT "*")

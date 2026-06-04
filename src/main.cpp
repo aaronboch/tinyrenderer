@@ -6,8 +6,9 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <raylib.h>
 
-extern mat4 ModelView, Viewport, Perspective;
+extern mat4 gl::ModelView, gl::Viewport, gl::Perspective;
 
 struct PhongShader : gl::IShader {
     const gl::Model& model;
@@ -16,14 +17,14 @@ struct PhongShader : gl::IShader {
     vec3 tri[3]; // tri in eye coordinates
 
     PhongShader(const gl::Model& m, const vec3 light) : model(m) {
-        l = (ModelView * vec4{light.x(), light.y(), light.z(), 0.}).xyz().norm();
+        l = (gl::ModelView * vec4{light.x(), light.y(), light.z(), 0.}).xyz().norm();
     }
 
     virtual vec4 vertex(int face, int vert) {
         vec3 v = model.vert(face, vert);
-        vec4 gl_Position = ModelView * vec4{v.x(), v.y(), v.z(), 1.}; // vert into obj coords
-        tri[vert] = gl_Position.xyz();                                // in eye coordiantes
-        return Perspective * gl_Position;                             // in clip coords
+        vec4 gl_Position = gl::ModelView * vec4{v.x(), v.y(), v.z(), 1.}; // vert into obj coords
+        tri[vert] = gl_Position.xyz();                                    // in eye coordiantes
+        return gl::Perspective * gl_Position;                             // in clip coords
     }
     virtual std::pair<bool, gl::Color> fragment(const vec3 bar) const {
         double e = 35.;      // shininess exponent
@@ -37,7 +38,7 @@ struct PhongShader : gl::IShader {
         auto diff = std::max(0., n.dot(l));
         // spec light intensity
 
-        vec3 eye_pos{0., 0., -1. / Perspective[3][2]};
+        vec3 eye_pos{0., 0., -1. / gl::Perspective[3][2]};
         auto P = (tri[0] * bar.x() + tri[1] * bar.y() + tri[2] * bar.z());
         auto v = (eye_pos - P).norm();
 
@@ -74,23 +75,46 @@ int main(int argc, char** argv) {
 
     gl::lookat(eye, center, up);                // build the ModelView   matrix
     gl::init_perspective((eye - center).len()); // build the Perspective matrix
-    gl::init_viewport(
-        width / 16, height / 16, width * 7 / 8, height * 7 / 8); // build the Viewport matrix
-    gl::init_zbuffer(width, height);
+    gl::init_viewport(0, 0, width, height);     // build the Viewport matrix
+
     gl::Framebuffer framebuffer(width, height);
 
-    for (int m = 1; m < argc; m++) {
-        gl::Model model{argv[m]};
-        PhongShader shader(model, light);
+    gl::Model model{argv[1]};
+    PhongShader shader(model, light);
+
+    InitWindow(width, height, "tinyrenderer");
+    SetTargetFPS(60);
+    Image image = {
+        .data = framebuffer.data.data(),
+        .width = width,
+        .height = height,
+        .mipmaps = 1,
+        .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
+    };
+    Texture2D tex = LoadTextureFromImage(image);
+
+    while (!WindowShouldClose()) {
+        gl::init_zbuffer(width, height);
+
         for (size_t f = 0; f < model.nfaces(); f++) {
             shader.color = {static_cast<uint8_t>(128),
                             static_cast<uint8_t>(128),
                             static_cast<uint8_t>(128),
                             255};
             gl::Triangle clip = {shader.vertex(f, 0), shader.vertex(f, 1), shader.vertex(f, 2)};
-            rasterize(clip, shader, framebuffer);
+            gl::rasterize(clip, shader, framebuffer);
         }
+
+        UpdateTexture(tex, framebuffer.data.data());
+
+        BeginDrawing();
+
+        ClearBackground(BLACK);
+        DrawTexture(tex, 0, 0, WHITE);
+
+        EndDrawing();
     }
+    UnloadTexture(tex);
 
     return 0;
 }

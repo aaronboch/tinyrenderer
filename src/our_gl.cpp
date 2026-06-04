@@ -24,7 +24,7 @@ namespace gl {
     }
     void init_viewport(int x, int y, int w, int h) {
         Viewport = {
-            {{{w / 2., 0, 0, x + w / 2.}, {0, h / 2., 0, y + h / 2.}, {0, 0, 1, 0}, {0, 0, 0, 1}}}};
+            {{{w / 2., 0, 0, x + w / 2.}, {0, -h / 2., 0, h / 2.}, {0, 0, 1, 0}, {0, 0, 0, 1}}}};
     }
 
     void init_zbuffer(const int width, const int height) {
@@ -40,7 +40,7 @@ namespace gl {
         mat3 ABC = {{{{screen[0].x(), screen[0].y(), 1.},
                       {screen[1].x(), screen[1].y(), 1.},
                       {screen[2].x(), screen[2].y(), 1.}}}};
-        if (ABC.det() < 1) { // backface culling + discard anything smaller than 1 pixel
+        if (std::abs(ABC.det()) < 1) { // backface culling + discard anything smaller than 1 pixel
             return;
         }
 

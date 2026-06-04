@@ -4,5 +4,4 @@ set obj (find . -name '*.obj' | fzf --prompt='Select .obj > ')
 
 if test -n "$obj"
     ./build/release/tinyrenderer "$obj"
-    open framebuffer.tga
 end
