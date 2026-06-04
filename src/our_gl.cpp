@@ -1,6 +1,7 @@
 #include "our_gl.hpp"
 
 #include <algorithm>
+#include <atomic>
 
 namespace gl {
     mat4 ModelView{}, Viewport{}, Perspective{};
@@ -28,7 +29,7 @@ namespace gl {
     }
 
     void init_zbuffer(const int width, const int height) {
-        zbuffer = std::vector(width * height, -std::numeric_limits<double>::max());
+        zbuffer.assign(width * height, -std::numeric_limits<double>::max());
     }
 
     void rasterize(const Triangle& clip, const IShader& shader, Framebuffer& framebuffer) {
@@ -40,7 +41,7 @@ namespace gl {
         mat3 ABC = {{{{screen[0].x(), screen[0].y(), 1.},
                       {screen[1].x(), screen[1].y(), 1.},
                       {screen[2].x(), screen[2].y(), 1.}}}};
-        if (std::abs(ABC.det()) < 1) { // backface culling + discard anything smaller than 1 pixel
+        if (std::abs(ABC.det()) < 1) {
             return;
         }
 
@@ -56,26 +57,27 @@ namespace gl {
         int xmax = std::min(bbmaxx, framebuffer.width - 1);
         int ymin = std::max(bbminy, 0);
         int ymax = std::min(bbmaxy, framebuffer.height - 1);
-// rasterize
-#pragma omp parallel for
+
         for (int x = xmin; x <= xmax; x++) {
             for (int y = ymin; y <= ymax; y++) {
                 auto ABC_invtr = ABC.inverse_transpose();
                 if (!ABC_invtr)
                     continue;
-                vec3 bc = *ABC_invtr * vec3{static_cast<double>(x),
-                                            static_cast<double>(y),
-                                            1.}; // barycentric coords {x,y} w.r.t
+                vec3 bc = *ABC_invtr * vec3{static_cast<double>(x), static_cast<double>(y), 1.};
                 if (bc.x() < 0 || bc.y() < 0 || bc.z() < 0)
                     continue;
                 double z = bc.dot(vec3{ndc[0].z(), ndc[1].z(), ndc[2].z()});
-                if (z <= zbuffer[x + y * framebuffer.width])
-                    continue;
-                auto [discard, color] = shader.fragment(bc);
-                if (discard)
-                    continue;
-                zbuffer[x + y * framebuffer.width] = z;
-                framebuffer.set(x, y, color);
+                double& ref = zbuffer[x + y * framebuffer.width];
+                std::atomic_ref<double> aref(ref);
+                double old_z = aref.load(std::memory_order_relaxed);
+                while (z > old_z) {
+                    if (aref.compare_exchange_weak(old_z, z, std::memory_order_relaxed)) {
+                        auto [discard, color] = shader.fragment(bc);
+                        if (!discard)
+                            framebuffer.set(x, y, color);
+                        break;
+                    }
+                }
             }
         }
     }

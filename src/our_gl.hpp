@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <vector>
+
 namespace gl {
     struct Color {
         uint8_t r, g, b, a;

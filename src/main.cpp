@@ -95,18 +95,20 @@ int main(int argc, char** argv) {
 
     while (!WindowShouldClose()) {
         gl::init_zbuffer(width, height);
-
+#pragma omp parallel for
         for (size_t f = 0; f < model.nfaces(); f++) {
-            shader.color = {static_cast<uint8_t>(128),
-                            static_cast<uint8_t>(128),
-                            static_cast<uint8_t>(128),
-                            255};
-            gl::Triangle clip = {shader.vertex(f, 0), shader.vertex(f, 1), shader.vertex(f, 2)};
-            gl::rasterize(clip, shader, framebuffer);
+            PhongShader local = shader;
+            local.color = {static_cast<uint8_t>(128),
+                           static_cast<uint8_t>(128),
+                           static_cast<uint8_t>(128),
+                           255};
+            gl::Triangle clip = {local.vertex(f, 0), local.vertex(f, 1), local.vertex(f, 2)};
+            gl::rasterize(clip, local, framebuffer);
         }
 
         UpdateTexture(tex, framebuffer.data.data());
 
+        SetWindowTitle(TextFormat("tinyrenderer | %i FPS", GetFPS()));
         BeginDrawing();
 
         ClearBackground(BLACK);
