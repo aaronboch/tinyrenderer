@@ -6,6 +6,7 @@ The renderer is based on Dmitry V. Sokolovs tinyrenderer hands-on course, which 
 
 ## Building
 
+### Linux & macOS
 ```bash
 git clone https://github.com/aaronboch/tinyrenderer
 cd tinyrenderer
@@ -13,6 +14,9 @@ cmake -B build/release && cmake --build build/release -j
 ```
 
 Or use the Zed task (`build-project`) if you're editing in Zed.
+
+### Windows
+Not tested — the build system should work with MSVC or MinGW, but you may hit issues.
 
 ### Dependencies
 - CMake (used for building)
@@ -27,7 +31,7 @@ Or use the Zed task (`build-project`) if you're editing in Zed.
 Or use the Zed task (`run-project`), which fuzzy-finds `.obj` files and prompts you to pick one.
 
 ## Features
-### From Tutorial
+### From Course
 - [x] Model loading
 - [x] Rasterization
 - [x] Back face culling
@@ -42,7 +46,7 @@ Or use the Zed task (`run-project`), which fuzzy-finds `.obj` files and prompts 
 ## My additions
 - [x] Raylib instead of rendering out to one image.
 - [x] Performance optimizations (to allow real time rendering)
-  - [x] Parrallel face loop instead of small part in rasterize function.
+  - [x] Parallel face loop instead of small part in rasterize function.
   - [x] General performance improvements
 - [ ] Controlling Camera
 - [ ] ImGui to Control variables (e.g. Light direction, Roughness, etc.)
