@@ -9,7 +9,10 @@ namespace gl {
     class Model {
         std::vector<vec3> v;
         std::vector<int> f; // face indices to v
+
       public:
+        vec3 center{};
+        double radius{};
         Model(const std::filesystem::path& filename);
         [[nodiscard]] size_t nverts() const noexcept;
         [[nodiscard]] size_t nfaces() const noexcept;

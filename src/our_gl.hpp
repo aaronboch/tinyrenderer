@@ -30,6 +30,7 @@ namespace gl {
     void init_perspective(double f, double aspect);
     void init_viewport(int x, int y, int w, int h);
     void init_zbuffer(const int width, const int height);
+    bool is_visible(vec3& center, double radius);
 
     struct IShader {
         virtual std::pair<bool, Color> fragment(const vec3 bar) const = 0;

@@ -7,6 +7,7 @@
 namespace gl {
     Model::Model(const std::filesystem::path& filename) {
         std::ifstream input{filename};
+        vec3 sum{};
         if (!input.is_open()) {
             throw std::runtime_error("Cannot open model file");
         }
@@ -21,7 +22,9 @@ namespace gl {
                 float x, y, z;
                 iss >> label;
                 if (iss >> x >> y >> z) {
-                    v.push_back(vec3{x, y, z});
+                    vec3 vertex{x, y, z};
+                    v.push_back(vertex);
+                    sum += vertex;
                 }
             } else if (line.starts_with("f ")) {
                 std::string token;
@@ -57,6 +60,10 @@ namespace gl {
                     return;
                 }
             }
+        }
+        center = sum / v.size();
+        for (auto vtx : v) {
+            radius = std::max(radius, (vtx - center).len());
         }
     }
 

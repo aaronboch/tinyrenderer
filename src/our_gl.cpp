@@ -32,6 +32,21 @@ namespace gl {
         zbuffer.assign(width * height, -std::numeric_limits<double>::max());
     }
 
+    bool is_visible(vec3& center, double radius) {
+        auto M = Perspective * ModelView;
+        std::array<vec4, 6> frustum_panes = {
+            M[0] + M[3], M[3] - M[0], M[1] + M[3], M[3] - M[1], M[2] + M[3], M[3] - M[2]};
+
+        for (auto p : frustum_panes) {
+            vec3 n{p[0], p[1], p[2]};
+            if ((n.dot(center) + p[3]) / n.len() <= -radius) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     void rasterize(const Triangle& clip, const IShader& shader, Framebuffer& framebuffer) {
         std::array<vec4, 3> ndc = {
             clip[0] / clip[0].w(), clip[1] / clip[1].w(), clip[2] / clip[2].w()};

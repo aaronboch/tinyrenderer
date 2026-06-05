@@ -106,7 +106,7 @@ int main(int argc, char** argv) {
         // poll input and update eye,center and do lookat
         auto delta = GetMouseDelta();
         yaw += delta.x * sensitivity;
-        pitch += delta.y * sensitivity;
+        pitch -= delta.y * sensitivity;
         pitch = std::clamp(pitch, -89.0f, 89.0f);
 
         vec3 forward{cos(yaw) * cos(pitch), sin(pitch), sin(yaw) * cos(pitch)};
@@ -135,15 +135,17 @@ int main(int argc, char** argv) {
 
         gl::init_zbuffer(width, height);
         std::fill(framebuffer.data.begin(), framebuffer.data.end(), gl::Color{0, 0, 0, 255});
+        if (gl::is_visible(model.center, model.radius)) {
 #pragma omp parallel for
-        for (size_t f = 0; f < model.nfaces(); f++) {
-            PhongShader local = shader;
-            local.color = {static_cast<uint8_t>(128),
-                           static_cast<uint8_t>(128),
-                           static_cast<uint8_t>(128),
-                           255};
-            gl::Triangle clip = {local.vertex(f, 0), local.vertex(f, 1), local.vertex(f, 2)};
-            gl::rasterize(clip, local, framebuffer);
+            for (size_t f = 0; f < model.nfaces(); f++) {
+                PhongShader local = shader;
+                local.color = {static_cast<uint8_t>(128),
+                               static_cast<uint8_t>(128),
+                               static_cast<uint8_t>(128),
+                               255};
+                gl::Triangle clip = {local.vertex(f, 0), local.vertex(f, 1), local.vertex(f, 2)};
+                gl::rasterize(clip, local, framebuffer);
+            }
         }
 
         UpdateTexture(tex, framebuffer.data.data());
