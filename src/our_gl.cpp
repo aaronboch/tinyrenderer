@@ -57,15 +57,17 @@ namespace gl {
         int xmax = std::min(bbmaxx, framebuffer.width - 1);
         int ymin = std::max(bbminy, 0);
         int ymax = std::min(bbmaxy, framebuffer.height - 1);
+        auto ABC_invtr = ABC.inverse_transpose();
+        if (!ABC_invtr)
+            return;
 
         for (int x = xmin; x <= xmax; x++) {
             for (int y = ymin; y <= ymax; y++) {
-                auto ABC_invtr = ABC.inverse_transpose();
-                if (!ABC_invtr)
-                    continue;
+
                 vec3 bc = *ABC_invtr * vec3{static_cast<double>(x), static_cast<double>(y), 1.};
                 if (bc.x() < 0 || bc.y() < 0 || bc.z() < 0)
                     continue;
+
                 double z = bc.dot(vec3{ndc[0].z(), ndc[1].z(), ndc[2].z()});
                 double& ref = zbuffer[x + y * framebuffer.width];
                 std::atomic_ref<double> aref(ref);

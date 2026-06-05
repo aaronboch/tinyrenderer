@@ -15,6 +15,7 @@ struct PhongShader : gl::IShader {
     gl::Color color{};
     vec3 l{};
     vec3 tri[3]; // tri in eye coordinates
+    vec3 eye_pos{0., 0., -1. / gl::Perspective[3][2]};
 
     PhongShader(const gl::Model& m, const vec3 light) : model(m) {
         l = (gl::ModelView * vec4{light.x(), light.y(), light.z(), 0.}).xyz().norm();
@@ -38,12 +39,11 @@ struct PhongShader : gl::IShader {
         auto diff = std::max(0., n.dot(l));
         // spec light intensity
 
-        vec3 eye_pos{0., 0., -1. / gl::Perspective[3][2]};
         auto P = (tri[0] * bar.x() + tri[1] * bar.y() + tri[2] * bar.z());
         auto v = (eye_pos - P).norm();
 
-        auto spec =
-            std::pow((std::max(0., r.dot(v))), e); // since camera is on z r.z would be sufficient
+        double s = r.dot(v);
+        double spec = s > 0 ? std::exp(e * std::log(s)) : 0.;
 
         vec3 base{color.r / 255., color.g / 255., color.b / 255.};
 
@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
     PhongShader shader(model, light);
 
     InitWindow(width, height, "tinyrenderer");
-    SetTargetFPS(60);
+    // SetTargetFPS(60);
     Image image = {
         .data = framebuffer.data.data(),
         .width = width,
