@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cmath>
 
 namespace gl {
     mat4 ModelView{}, Viewport{}, Perspective{};
@@ -20,8 +21,12 @@ namespace gl {
                            {0, 0, 1, -center.z()},
                            {0, 0, 0, 1}}}};
     }
-    void init_perspective(double f, double aspect) {
-        Perspective = {{{{1 / aspect, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, -1 / f, 1}}}};
+    void init_perspective(double fov, double aspect, double near, double far) {
+        double t = std::tan(fov / 2.0);
+        Perspective = {{{{1.0 / (aspect * t), 0, 0, 0},
+                         {0, 1.0 / t, 0, 0},
+                         {0, 0, -(far + near) / (far - near), -2 * far * near / (far - near)},
+                         {0, 0, -1, 0}}}};
     }
     void init_viewport(int x, int y, int w, int h) {
         Viewport = {
@@ -29,7 +34,7 @@ namespace gl {
     }
 
     void init_zbuffer(const int width, const int height) {
-        zbuffer.assign(width * height, -std::numeric_limits<double>::max());
+        zbuffer.assign(width * height, std::numeric_limits<double>::max());
     }
 
     bool is_visible(vec3& center, double radius) {
@@ -87,7 +92,7 @@ namespace gl {
                 double& ref = zbuffer[x + y * framebuffer.width];
                 std::atomic_ref<double> aref(ref);
                 double old_z = aref.load(std::memory_order_relaxed);
-                while (z > old_z) {
+                while (z < old_z) {
                     if (aref.compare_exchange_weak(old_z, z, std::memory_order_relaxed)) {
                         auto [discard, color] = shader.fragment(bc);
                         if (!discard)

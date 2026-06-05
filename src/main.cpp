@@ -16,7 +16,7 @@ struct PhongShader : gl::IShader {
     gl::Color color{};
     vec3 l{};
     vec3 tri[3]; // tri in eye coordinates
-    vec3 eye_pos{0., 0., -1. / gl::Perspective[3][2]};
+    vec3 eye_pos{0., 0., 0.};
 
     PhongShader(const gl::Model& m, const vec3 light) : model(m) {
         l = (gl::ModelView * vec4{light.x(), light.y(), light.z(), 0.}).xyz().norm();
@@ -79,8 +79,7 @@ int main(int argc, char** argv) {
     vec3 up{0, 1, 0};     // camera up vector
 
     gl::lookat(eye, center, up); // build the ModelView   matrix
-    gl::init_perspective((eye - center).len(),
-                         (double)width / height); // build the Perspective matrix
+    gl::init_perspective(70.0 * M_PI / 180.0, (double)width / height, 0.1, 1000.0);
     gl::init_viewport(0, 0, width, height);       // build the Viewport matrix
 
     gl::Framebuffer framebuffer(width, height);
