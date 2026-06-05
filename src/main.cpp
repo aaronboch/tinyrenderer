@@ -2,6 +2,7 @@
 #include "model.hpp"
 #include "our_gl.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
@@ -68,10 +69,14 @@ int main(int argc, char** argv) {
 
     constexpr int width = 1280; // output image size
     constexpr int height = 720;
-    constexpr vec3 light{1, 1, 1};  // unit length direction to sun
-    constexpr vec3 eye{-1, 0, 2};   // camera position
-    constexpr vec3 center{0, 0, 0}; // camera direction
-    constexpr vec3 up{0, 1, 0};     // camera up vector
+    constexpr vec3 light{1, 1, 1};       // unit length direction to sun
+    constexpr double sensitivity = 0.01; // mouse sensitivity
+    constexpr double move_speed = 0.01;
+
+    // camera
+    vec3 eye{-1, 0, 2};   // camera position
+    vec3 center{0, 0, 0}; // camera direction
+    vec3 up{0, 1, 0};     // camera up vector
 
     gl::lookat(eye, center, up); // build the ModelView   matrix
     gl::init_perspective((eye - center).len(),
@@ -84,6 +89,9 @@ int main(int argc, char** argv) {
     PhongShader shader(model, light);
 
     InitWindow(width, height, "tinyrenderer");
+    DisableCursor();
+
+    float yaw{}, pitch{};
     // SetTargetFPS(60);
     Image image = {
         .data = framebuffer.data.data(),
@@ -95,7 +103,38 @@ int main(int argc, char** argv) {
     Texture2D tex = LoadTextureFromImage(image);
 
     while (!WindowShouldClose()) {
+        // poll input and update eye,center and do lookat
+        auto delta = GetMouseDelta();
+        yaw += delta.x * sensitivity;
+        pitch += delta.y * sensitivity;
+        pitch = std::clamp(pitch, -89.0f, 89.0f);
+
+        vec3 forward{cos(yaw) * cos(pitch), sin(pitch), sin(yaw) * cos(pitch)};
+        forward = forward.norm();
+        auto right = up.cross(forward).norm();
+        if (IsKeyDown(KEY_W)) {
+            eye += forward * move_speed;
+        }
+        if (IsKeyDown(KEY_S)) {
+            eye -= forward * move_speed;
+        }
+        if (IsKeyDown(KEY_A)) {
+            eye += right * move_speed;
+        }
+        if (IsKeyDown(KEY_D)) {
+            eye -= right * move_speed;
+        }
+        if (IsKeyDown(KEY_SPACE)) {
+            eye += up * move_speed;
+        }
+        if (IsKeyDown(KEY_LEFT_SHIFT)) {
+            eye -= up * move_speed;
+        }
+        center = eye + forward;
+        gl::lookat(eye, center, up);
+
         gl::init_zbuffer(width, height);
+        std::fill(framebuffer.data.begin(), framebuffer.data.end(), gl::Color{0, 0, 0, 255});
 #pragma omp parallel for
         for (size_t f = 0; f < model.nfaces(); f++) {
             PhongShader local = shader;

@@ -48,7 +48,9 @@ Or use the Zed task (`run-project`), which fuzzy-finds `.obj` files and prompts 
 - [x] Performance optimizations (to allow real time rendering)
   - [x] Parallel face loop instead of small part in rasterize function.
   - [x] General performance improvements
-- [ ] Controlling Camera
+- [x] Controlling Camera
+- [ ] Loading Multiple Models 
+  - [ ] Support for multiple models in the same scene (e.g offsetting postion of each model, etc.)
 - [ ] ImGui to Control variables (e.g. Light direction, Roughness, etc.)
 
 ## License
