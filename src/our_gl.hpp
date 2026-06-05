@@ -27,7 +27,7 @@ namespace gl {
 
     extern mat4 ModelView, Viewport, Perspective;
     void lookat(vec3 eye, vec3 center, vec3 up);
-    void init_perspective(double f);
+    void init_perspective(double f, double aspect);
     void init_viewport(int x, int y, int w, int h);
     void init_zbuffer(const int width, const int height);
 

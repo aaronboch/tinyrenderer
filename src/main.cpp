@@ -66,16 +66,17 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    constexpr int width = 800; // output image size
-    constexpr int height = 800;
+    constexpr int width = 1280; // output image size
+    constexpr int height = 720;
     constexpr vec3 light{1, 1, 1};  // unit length direction to sun
     constexpr vec3 eye{-1, 0, 2};   // camera position
     constexpr vec3 center{0, 0, 0}; // camera direction
     constexpr vec3 up{0, 1, 0};     // camera up vector
 
-    gl::lookat(eye, center, up);                // build the ModelView   matrix
-    gl::init_perspective((eye - center).len()); // build the Perspective matrix
-    gl::init_viewport(0, 0, width, height);     // build the Viewport matrix
+    gl::lookat(eye, center, up); // build the ModelView   matrix
+    gl::init_perspective((eye - center).len(),
+                         (double)width / height); // build the Perspective matrix
+    gl::init_viewport(0, 0, width, height);       // build the Viewport matrix
 
     gl::Framebuffer framebuffer(width, height);
 

@@ -20,8 +20,8 @@ namespace gl {
                            {0, 0, 1, -center.z()},
                            {0, 0, 0, 1}}}};
     }
-    void init_perspective(double f) {
-        Perspective = {{{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, -1 / f, 1}}}};
+    void init_perspective(double f, double aspect) {
+        Perspective = {{{{1 / aspect, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, -1 / f, 1}}}};
     }
     void init_viewport(int x, int y, int w, int h) {
         Viewport = {

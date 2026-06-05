@@ -1,6 +1,6 @@
 # Blender 5.1.2
 # www.blender.org
-mtllib stanford_dragon.mtl
+mtllib dragon_vrip_res4.mtl
 o dragon_vrip_res4
 v 0.317083 -0.442061 -0.498360
 v 0.320029 -0.417716 -0.496201
