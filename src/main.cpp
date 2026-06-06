@@ -69,8 +69,8 @@ int main(int argc, char** argv) {
 
     constexpr int width = 1280; // output image size
     constexpr int height = 720;
-    constexpr vec3 light{1, 1, 1};       // unit length direction to sun
-    constexpr double sensitivity = 0.01; // mouse sensitivity
+    constexpr vec3 light{1, 1, 1};        // unit length direction to sun
+    constexpr double sensitivity = 0.005; // mouse sensitivity
     constexpr double move_speed = 0.01;
 
     // camera
@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
         // poll input and update eye,center and do lookat
         auto delta = GetMouseDelta();
         yaw += delta.x * sensitivity;
-        pitch += delta.y * sensitivity;
+        pitch -= delta.y * sensitivity;
         pitch = std::clamp(pitch, -89.0f, 89.0f);
 
         vec3 forward{cos(yaw) * cos(pitch), sin(pitch), sin(yaw) * cos(pitch)};
@@ -131,6 +131,7 @@ int main(int argc, char** argv) {
         }
         center = eye + forward;
         gl::lookat(eye, center, up);
+        shader.l = ((gl::ModelView * vec4{light.x(), light.y(), light.z(), 0}).xyz().norm());
 
         gl::init_zbuffer(width, height);
         std::fill(framebuffer.data.begin(), framebuffer.data.end(), gl::Color{0, 0, 0, 255});
@@ -148,9 +149,9 @@ int main(int argc, char** argv) {
                     {local.vertex(f, 2), local.tri[2]},
                 }};
 
-                if (verts[0].clip.z() + verts[0].clip.w() > 0
-                    && verts[1].clip.z() + verts[1].clip.w() > 0
-                    && verts[2].clip.z() + verts[2].clip.w() > 0) {
+                if (verts[0].clip.z() + verts[0].clip.w() > 0 &&
+                    verts[1].clip.z() + verts[1].clip.w() > 0 &&
+                    verts[2].clip.z() + verts[2].clip.w() > 0) {
                     gl::rasterize(
                         {verts[0].clip, verts[1].clip, verts[2].clip}, local, framebuffer);
                 } else {
