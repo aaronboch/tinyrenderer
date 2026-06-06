@@ -5,6 +5,12 @@
 #include <vector>
 
 namespace gl {
+    struct ClipVertex {
+        vec4 clip;
+        vec3 eye;
+        // vec3 norm  when per vertex normals are implemented
+    };
+
     struct Color {
         uint8_t r, g, b, a;
     };
@@ -31,6 +37,9 @@ namespace gl {
     void init_viewport(int x, int y, int w, int h);
     void init_zbuffer(const int width, const int height);
     bool is_visible(vec3& center, double radius);
+    ClipVertex clip_edge(const ClipVertex& a, const ClipVertex& b);
+    int clip_near_plane(const std::array<ClipVertex, 3>& in,
+                        std::array<std::array<ClipVertex, 3>, 2>& out_tris);
 
     struct IShader {
         virtual std::pair<bool, Color> fragment(const vec3 bar) const = 0;

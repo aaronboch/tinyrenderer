@@ -51,6 +51,49 @@ namespace gl {
 
         return true;
     }
+    // creates the new vertex on edge ab where it intersects with the near plane (z + w = 0)
+    ClipVertex clip_edge(const ClipVertex& a, const ClipVertex& b) {
+        // a is outside (z + w <= 0), b is inside (z + w > 0)
+        double denom = (b.clip.z() + b.clip.w()) - (a.clip.z() + a.clip.w());
+        double t = -(a.clip.z() + a.clip.w()) / denom;
+        return {
+            a.clip + t * (b.clip - a.clip), // clip-space
+            a.eye + t * (b.eye - a.eye),    // eye-space
+        };
+    }
+    // clips the triangle against the near plane, returns the number of output triangles (0, 1 or 2)
+    int clip_near_plane(const std::array<ClipVertex, 3>& in,
+                        std::array<std::array<ClipVertex, 3>, 2>& out_tris) {
+        std::array<ClipVertex, 4> out{};
+        int nout{};
+        for (size_t i{}; i < in.size(); i++) {
+            auto cur = in[i];
+            auto prev = in[(i + 2) % 3];
+            bool cur_inside = cur.clip.z() + cur.clip.w() > 0;
+            bool prev_inside = prev.clip.z() + prev.clip.w() > 0;
+            if (cur_inside) {
+                if (!prev_inside) {
+                    out[nout++] = clip_edge(prev, cur);
+                }
+                out[nout++] = cur;
+            } else if (prev_inside) {
+                out[nout++] = clip_edge(prev, cur);
+            }
+        }
+        switch (nout) {
+            case 3: {
+                out_tris[0] = {out[0], out[1], out[2]};
+                return 1;
+            }
+            case 4: {
+                out_tris[0] = {out[0], out[1], out[2]};
+                out_tris[1] = {out[0], out[2], out[3]};
+                return 2;
+            }
+            default:
+                return 0;
+        }
+    }
 
     void rasterize(const Triangle& clip, const IShader& shader, Framebuffer& framebuffer) {
         std::array<vec4, 3> ndc = {

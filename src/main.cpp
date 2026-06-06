@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
 
     gl::lookat(eye, center, up); // build the ModelView   matrix
     gl::init_perspective(70.0 * M_PI / 180.0, (double)width / height, 0.1, 1000.0);
-    gl::init_viewport(0, 0, width, height);       // build the Viewport matrix
+    gl::init_viewport(0, 0, width, height); // build the Viewport matrix
 
     gl::Framebuffer framebuffer(width, height);
 
@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
         // poll input and update eye,center and do lookat
         auto delta = GetMouseDelta();
         yaw += delta.x * sensitivity;
-        pitch -= delta.y * sensitivity;
+        pitch += delta.y * sensitivity;
         pitch = std::clamp(pitch, -89.0f, 89.0f);
 
         vec3 forward{cos(yaw) * cos(pitch), sin(pitch), sin(yaw) * cos(pitch)};
@@ -142,8 +142,29 @@ int main(int argc, char** argv) {
                                static_cast<uint8_t>(128),
                                static_cast<uint8_t>(128),
                                255};
-                gl::Triangle clip = {local.vertex(f, 0), local.vertex(f, 1), local.vertex(f, 2)};
-                gl::rasterize(clip, local, framebuffer);
+                std::array<gl::ClipVertex, 3> verts = {{
+                    {local.vertex(f, 0), local.tri[0]},
+                    {local.vertex(f, 1), local.tri[1]},
+                    {local.vertex(f, 2), local.tri[2]},
+                }};
+
+                if (verts[0].clip.z() + verts[0].clip.w() > 0
+                    && verts[1].clip.z() + verts[1].clip.w() > 0
+                    && verts[2].clip.z() + verts[2].clip.w() > 0) {
+                    gl::rasterize(
+                        {verts[0].clip, verts[1].clip, verts[2].clip}, local, framebuffer);
+                } else {
+                    std::array<std::array<gl::ClipVertex, 3>, 2> clipped;
+                    int n = gl::clip_near_plane(verts, clipped);
+                    for (int t = 0; t < n; t++) {
+                        local.tri[0] = clipped[t][0].eye;
+                        local.tri[1] = clipped[t][1].eye;
+                        local.tri[2] = clipped[t][2].eye;
+                        gl::rasterize({clipped[t][0].clip, clipped[t][1].clip, clipped[t][2].clip},
+                                      local,
+                                      framebuffer);
+                    }
+                }
             }
         }
 
