@@ -93,10 +93,7 @@ int main(int argc, char** argv) {
     PhongShader shader(model, light);
 
     InitWindow(width, height, "tinyrenderer");
-    DisableCursor();
 
-    float yaw{}, pitch{};
-    // SetTargetFPS(60);
     Image image = {
         .data = framebuffer.data.data(),
         .width = width,
@@ -106,33 +103,34 @@ int main(int argc, char** argv) {
     };
     Texture2D tex = LoadTextureFromImage(image);
 
+    float yaw{std::atan2(-2.0f, 1.0f)}, pitch{};
+    bool was_controlling = false;
     while (!WindowShouldClose()) {
-        // poll input and update eye,center and do lookat
-        auto delta = GetMouseDelta();
-        yaw += delta.x * sensitivity;
-        pitch -= delta.y * sensitivity;
-        pitch = std::clamp(pitch, -89.0f, 89.0f);
+        // right-click to grab/release cursor (Blender-style)
+        bool controlling = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
+        if (controlling && !was_controlling) DisableCursor();
+        if (!controlling && was_controlling) EnableCursor();
+        was_controlling = controlling;
 
-        vec3 forward{cos(yaw) * cos(pitch), sin(pitch), sin(yaw) * cos(pitch)};
-        forward = forward.norm();
-        auto right = up.cross(forward).norm();
-        if (IsKeyDown(KEY_W)) {
-            eye += forward * move_speed;
-        }
-        if (IsKeyDown(KEY_S)) {
-            eye -= forward * move_speed;
-        }
-        if (IsKeyDown(KEY_A)) {
-            eye += right * move_speed;
-        }
-        if (IsKeyDown(KEY_D)) {
-            eye -= right * move_speed;
-        }
-        if (IsKeyDown(KEY_SPACE)) {
-            eye += up * move_speed;
-        }
-        if (IsKeyDown(KEY_LEFT_SHIFT)) {
-            eye -= up * move_speed;
+        vec3 forward{};
+        if (controlling) {
+            auto delta = GetMouseDelta();
+            yaw += delta.x * sensitivity;
+            pitch -= delta.y * sensitivity;
+            pitch = std::clamp(pitch, -89.0f, 89.0f);
+
+            forward = {cos(yaw) * cos(pitch), sin(pitch), sin(yaw) * cos(pitch)};
+            forward = forward.norm();
+            auto right = up.cross(forward).norm();
+            if (IsKeyDown(KEY_W)) eye += forward * move_speed;
+            if (IsKeyDown(KEY_S)) eye -= forward * move_speed;
+            if (IsKeyDown(KEY_A)) eye += right * move_speed;
+            if (IsKeyDown(KEY_D)) eye -= right * move_speed;
+            if (IsKeyDown(KEY_SPACE)) eye += up * move_speed;
+            if (IsKeyDown(KEY_LEFT_SHIFT)) eye -= up * move_speed;
+        } else {
+            forward = {cos(yaw) * cos(pitch), sin(pitch), sin(yaw) * cos(pitch)};
+            forward = forward.norm();
         }
         center = eye + forward;
         gl::lookat(eye, center, up);
