@@ -3,4 +3,4 @@
 	url = https://github.com/ocornut/imgui
 [submodule "third_party/rlImGui"]
 	path = third_party/rlImGui
-	url = https://github.com/raylib-extras/rlImGui
+	url = https://github.com/raylib-extras/rlImGui.git
