@@ -9,8 +9,10 @@ namespace gl {
     class Model {
         std::vector<vec3> v;
         std::vector<vec3> vn;   // vertex normals
+        std::vector<vec3> vt;   // vertex texture coords
         std::vector<int> f_vrt; // face indices to v
         std::vector<int> f_nrm; // face indices to vn
+        std::vector<int> f_tex; // face indices to vt
 
       public:
         vec3 center{};

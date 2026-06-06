@@ -8,60 +8,55 @@ namespace gl {
     Model::Model(const std::filesystem::path& filename) {
         std::ifstream input{filename};
         vec3 sum{};
-        if (!input.is_open()) {
+        if (!input.is_open())
             throw std::runtime_error("Cannot open model file");
-        }
-        for (std::string line; std::getline(input, line);) {
-            if (line.empty()) {
-                continue;
-            }
 
+        auto read_vec3 = [](std::istringstream& iss, float& x, float& y, float& z) {
+            std::string label;
+            return static_cast<bool>(iss >> label >> x >> y >> z);
+        };
+
+        for (std::string line; std::getline(input, line);) {
+            if (line.empty())
+                continue;
+
+            std::istringstream iss{line};
             if (line.starts_with("v ")) {
-                std::istringstream iss{line};
-                char label;
                 float x, y, z;
-                iss >> label;
-                if (iss >> x >> y >> z) {
-                    vec3 vertex{x, y, z};
-                    v.push_back(vertex);
-                    sum += vertex;
+                if (read_vec3(iss, x, y, z)) {
+                    v.push_back({x, y, z});
+                    sum += v.back();
                 }
             } else if (line.starts_with("vn ")) {
-                std::istringstream iss{line};
-                std::string label;
                 float x, y, z;
-                iss >> label;
-                if (iss >> x >> y >> z) {
-                    vn.push_back(vec3{x, y, z});
-                }
+                if (read_vec3(iss, x, y, z))
+                    vn.push_back({x, y, z});
+            } else if (line.starts_with("vt ")) {
+                float x, y, z;
+                if (read_vec3(iss, x, y, z))
+                    vt.push_back({x, y, z});
             } else if (line.starts_with("f ")) {
                 std::string token;
                 std::istringstream iss{line};
                 iss >> token; // throw f away
 
-                int vi = 0, vt = 0, vni = 0, cnt = 0;
+                int cnt = 0;
                 while (iss >> token) {
-                    const auto first = token.find('/');
-                    const auto second = token.find('/', first + 1);
-                    if (first == std::string::npos) { // just v
-                        vi = std::stoi(token);
-                    } else {
-                        vi = std::stoi(token.substr(0, first));
-                        if (second == std::string::npos) { // v/vt/
-                            if (first + 1 < token.size()) {
-                                vt = std::stoi(token.substr(first + 1));
-                            }
-                        } else { // v/vt/vn or v/vt/
-                            if (second > first + 1) {
-                                vt = std::stoi(token.substr(first + 1, second - first - 1));
-                            }
-                            if (second + 1 < token.size()) {
-                                vni = std::stoi(token.substr(second + 1));
-                                f_nrm.push_back(--vni);
-                            }
+                    std::istringstream tis{token};
+                    std::string seg;
+                    int idx = 0;
+                    while (std::getline(tis, seg, '/')) {
+                        if (!seg.empty()) {
+                            int val = std::stoi(seg) - 1;
+                            if (idx == 0)
+                                f_vrt.push_back(val);
+                            else if (idx == 1)
+                                f_tex.push_back(val);
+                            else if (idx == 2)
+                                f_nrm.push_back(val);
                         }
+                        idx++;
                     }
-                    f_vrt.push_back(--vi);
                     cnt++;
                 }
                 if (cnt != 3) {
