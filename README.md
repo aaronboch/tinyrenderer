@@ -35,9 +35,9 @@ Or use the Zed task (`run-project`), which fuzzy-finds `.obj` files and prompts 
 - [x] Model loading
 - [x] Rasterization
 - [x] Back face culling
-- [ ] Phong reflection model 
+- [x] Phong reflection model 
   - [x] On faces
-  - [ ] On vertices
+  - [x] On vertices
 - [ ] Normal mapping
 - [ ] Texture mapping
 - [ ] Shadow mapping

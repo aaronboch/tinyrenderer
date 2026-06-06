@@ -16,6 +16,7 @@ struct PhongShader : gl::IShader {
     gl::Color color{};
     vec3 l{};
     vec3 tri[3]; // tri in eye coordinates
+    vec3 tri_nrm[3];
     vec3 eye_pos{0., 0., 0.};
 
     PhongShader(const gl::Model& m, const vec3 light) : model(m) {
@@ -24,6 +25,9 @@ struct PhongShader : gl::IShader {
 
     virtual vec4 vertex(int face, int vert) {
         vec3 v = model.vert(face, vert);
+        vec3 n = model.normal(face, vert);
+        tri_nrm[vert] =
+            (gl::ModelView.inverse_transpose().value() * vec4{n.x(), n.y(), n.z(), 0.}).xyz();
         vec4 gl_Position = gl::ModelView * vec4{v.x(), v.y(), v.z(), 1.}; // vert into obj coords
         tri[vert] = gl_Position.xyz();                                    // in eye coordiantes
         return gl::Perspective * gl_Position;                             // in clip coords
@@ -33,7 +37,8 @@ struct PhongShader : gl::IShader {
         double ambient = .3; // ambient light intensity
 
         // calculate triangle normal vector
-        auto n = (tri[1] - tri[0]).cross(tri[2] - tri[0]).norm();
+        vec3 n{};
+        n = (bar.x() * tri_nrm[0] + bar.y() * tri_nrm[1] + bar.z() * tri_nrm[2]).norm();
         auto r = (2 * n * (n.dot(l)) - l).norm(); // reflection vec
 
         // diffuse light intensity

@@ -8,7 +8,9 @@ namespace gl {
 
     class Model {
         std::vector<vec3> v;
-        std::vector<int> f; // face indices to v
+        std::vector<vec3> vn;   // vertex normals
+        std::vector<int> f_vrt; // face indices to v
+        std::vector<int> f_nrm; // face indices to vn
 
       public:
         vec3 center{};
@@ -21,5 +23,7 @@ namespace gl {
         [[nodiscard]] vec3
         vert(int iface,
              int nthvert) const noexcept; // returns vertex of specific face 0<= i < 3
+        [[nodiscard]] vec3
+        normal(int iface, int nthvert) const noexcept; // returns normal of specific face 0<= i < 3
     };
 } // namespace gl
