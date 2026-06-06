@@ -26,7 +26,7 @@ endif()
 find_package(OpenMP COMPONENTS CXX)
 find_package(raylib REQUIRED)
 
-set(SOURCES main.cpp model.cpp our_gl.cpp)
+set(SOURCES main.cpp model.cpp our_gl.cpp camera.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_SOURCE_DIR}/third_party/imgui/imgui.cpp

@@ -1,3 +1,4 @@
+#include "camera.hpp"
 #include "geometry.hpp"
 #include "model.hpp"
 #include "our_gl.hpp"
@@ -75,15 +76,9 @@ int main(int argc, char** argv) {
     constexpr int width = 1280; // output image size
     constexpr int height = 720;
     constexpr vec3 light{1, 1, 1};        // unit length direction to sun
-    constexpr double sensitivity = 0.005; // mouse sensitivity
-    constexpr double move_speed = 0.01;
+    cam::Camera camera{{-1, 0, 2}, {0, 0, 0}, {0, 1, 0}};
 
-    // camera
-    vec3 eye{-1, 0, 2};   // camera position
-    vec3 center{0, 0, 0}; // camera direction
-    vec3 up{0, 1, 0};     // camera up vector
-
-    gl::lookat(eye, center, up); // build the ModelView   matrix
+    gl::lookat(camera.eye(), camera.center(), camera.up());
     gl::init_perspective(70.0 * M_PI / 180.0, (double)width / height, 0.1, 1000.0);
     gl::init_viewport(0, 0, width, height); // build the Viewport matrix
 
@@ -103,37 +98,9 @@ int main(int argc, char** argv) {
     };
     Texture2D tex = LoadTextureFromImage(image);
 
-    float yaw{std::atan2(-2.0f, 1.0f)}, pitch{};
-    bool was_controlling = false;
     while (!WindowShouldClose()) {
-        // right-click to grab/release cursor (Blender-style)
-        bool controlling = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
-        if (controlling && !was_controlling) DisableCursor();
-        if (!controlling && was_controlling) EnableCursor();
-        was_controlling = controlling;
-
-        vec3 forward{};
-        if (controlling) {
-            auto delta = GetMouseDelta();
-            yaw += delta.x * sensitivity;
-            pitch -= delta.y * sensitivity;
-            pitch = std::clamp(pitch, -89.0f, 89.0f);
-
-            forward = {cos(yaw) * cos(pitch), sin(pitch), sin(yaw) * cos(pitch)};
-            forward = forward.norm();
-            auto right = up.cross(forward).norm();
-            if (IsKeyDown(KEY_W)) eye += forward * move_speed;
-            if (IsKeyDown(KEY_S)) eye -= forward * move_speed;
-            if (IsKeyDown(KEY_A)) eye += right * move_speed;
-            if (IsKeyDown(KEY_D)) eye -= right * move_speed;
-            if (IsKeyDown(KEY_SPACE)) eye += up * move_speed;
-            if (IsKeyDown(KEY_LEFT_SHIFT)) eye -= up * move_speed;
-        } else {
-            forward = {cos(yaw) * cos(pitch), sin(pitch), sin(yaw) * cos(pitch)};
-            forward = forward.norm();
-        }
-        center = eye + forward;
-        gl::lookat(eye, center, up);
+        camera.update();
+        gl::lookat(camera.eye(), camera.center(), camera.up());
         shader.l = ((gl::ModelView * vec4{light.x(), light.y(), light.z(), 0}).xyz().norm());
 
         gl::init_zbuffer(width, height);
