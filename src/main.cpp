@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
         gl::init_zbuffer(width, height);
         std::fill(framebuffer.data.begin(), framebuffer.data.end(), gl::Color{0, 0, 0, 255});
         if (gl::is_visible(model.center, model.radius)) {
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic)
             for (size_t f = 0; f < model.nfaces(); f++) {
                 PhongShader local = shader;
                 local.color = {static_cast<uint8_t>(128),

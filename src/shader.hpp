@@ -31,7 +31,7 @@ struct PhongShader : gl::IShader {
 
         // calculate triangle normal vector
         vec3 n{};
-        n = (bar.x() * tri_nrm[0] + bar.y() * tri_nrm[1] + bar.z() * tri_nrm[2]).norm();
+        n = (bar.x() * tri_nrm[0] + bar.y() * tri_nrm[1] + bar.z() * tri_nrm[2]);
         auto r = (2 * n * (n.dot(l)) - l).norm(); // reflection vec
 
         // diffuse light intensity
@@ -42,7 +42,7 @@ struct PhongShader : gl::IShader {
         auto v = (eye_pos - P).norm();
 
         double s = r.dot(v);
-        double spec = s > 0 ? std::exp(e * std::log(s)) : 0.;
+        double spec = s > 0 ? pow(s, e) : 0.;
 
         vec3 base{color.r / 255., color.g / 255., color.b / 255.};
 
