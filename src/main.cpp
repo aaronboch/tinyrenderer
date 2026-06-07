@@ -18,8 +18,8 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    constexpr int width = 1280; // output image size
-    constexpr int height = 720;
+    int width = 1280; // output image size
+    int height = 720;
     constexpr vec3 light{1, 1, 1}; // unit length direction to sun
     cam::Camera camera{{-1, 0, 2}, {0, 0, 0}, {0, 1, 0}};
 
@@ -32,6 +32,7 @@ int main(int argc, char** argv) {
     gl::Model model{argv[1]};
     PhongShader shader(model, light);
 
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(width, height, "tinyrenderer");
 
     Image image = {
@@ -44,6 +45,22 @@ int main(int argc, char** argv) {
     Texture2D tex = LoadTextureFromImage(image);
 
     while (!WindowShouldClose()) {
+        width = GetScreenWidth();
+        height = GetScreenHeight();
+        if (width != image.width || height != image.height) {
+            framebuffer.resize(width, height);
+            image.data = framebuffer.data.data();
+            image.width = width;
+            image.height = height;
+            UnloadTexture(tex);
+            tex = LoadTextureFromImage(image);
+            gl::init_viewport(0, 0, width, height); // ← fixes centering
+            gl::init_perspective(70 * M_PI / 180,   // ← fixes aspect ratio
+                                 (double)width / height,
+                                 0.1,
+                                 1000.0);
+        }
+
         camera.update();
         gl::lookat(camera.eye(), camera.center(), camera.up());
         shader.l = ((gl::ModelView * vec4{light.x(), light.y(), light.z(), 0}).xyz().norm());
