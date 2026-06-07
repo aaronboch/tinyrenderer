@@ -34,7 +34,6 @@ Or use the Zed task (`run-project`), which fuzzy-finds `.obj` files and prompts 
 ### From Course
 - [x] Model loading
 - [x] Rasterization
-- [x] Back face culling
 - [x] Phong reflection model 
   - [x] On faces
   - [x] On vertices
@@ -48,6 +47,7 @@ Or use the Zed task (`run-project`), which fuzzy-finds `.obj` files and prompts 
 - [x] Performance optimizations (to allow real time rendering)
   - [x] Parallel face loop instead of small part in rasterize function.
   - [x] General performance improvements
+  - [x] Backface culling
   - [ ] Blinn-Phong reflection model
 - [x] Controlling Camera
 - [ ] Loading Multiple Models 

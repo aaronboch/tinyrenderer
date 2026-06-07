@@ -81,6 +81,15 @@ int main(int argc, char** argv) {
                     {local.vertex(f, 2), local.tri[2]},
                 }};
 
+                // backface culling
+                auto ndc0 = verts[0].clip / verts[0].clip.w();
+                auto ndc1 = verts[1].clip / verts[1].clip.w();
+                auto ndc2 = verts[2].clip / verts[2].clip.w();
+                double signed_area = (ndc1.x() - ndc0.x()) * (ndc2.y() - ndc0.y()) -
+                                     (ndc1.y() - ndc0.y()) * (ndc2.x() - ndc0.x());
+                if (signed_area < 0)
+                    continue;
+
                 if (verts[0].clip.z() + verts[0].clip.w() > 0 &&
                     verts[1].clip.z() + verts[1].clip.w() > 0 &&
                     verts[2].clip.z() + verts[2].clip.w() > 0) {
