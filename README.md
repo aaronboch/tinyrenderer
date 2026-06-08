@@ -53,6 +53,12 @@ Or use the Zed task (`run-project`), which fuzzy-finds `.obj` files and prompts 
 - [ ] Loading Multiple Models 
   - [ ] Support for multiple models in the same scene (e.g offsetting postion of each model, etc.)
 - [ ] ImGui to Control variables (e.g. Light direction, Roughness, etc.)
+  - [x] Basic ImGui Setup
+  - [x] Adding ability to load new models from ImGui 
+  - [ ] Adding controls for variables
+    - [ ] Model position/rotation/scale
+    - [ ] Shader properties (e.g. Light direction, Roughness, etc.)
+    - [ ] Camera position/rotation
 
 ## License
 MIT — based on [ssloy/tinyrenderer](https://github.com/ssloy/tinyrenderer) (also MIT).

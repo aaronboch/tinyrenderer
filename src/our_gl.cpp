@@ -37,7 +37,7 @@ namespace gl {
         zbuffer.assign(width * height, std::numeric_limits<double>::max());
     }
 
-    bool is_visible(vec3& center, double radius) {
+    bool is_visible(const vec3& center, const double radius) {
         auto M = Perspective * ModelView;
         std::array<vec4, 6> frustum_panes = {
             M[0] + M[3], M[3] - M[0], M[1] + M[3], M[3] - M[1], M[2] + M[3], M[3] - M[2]};

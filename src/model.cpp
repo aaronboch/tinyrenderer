@@ -66,9 +66,9 @@ namespace gl {
                 }
             }
         }
-        center = sum / v.size();
+        local_center = sum / v.size();
         for (auto vtx : v) {
-            radius = std::max(radius, (vtx - center).len());
+            radius = std::max(radius, (vtx - local_center).len());
         }
     }
 
@@ -82,9 +82,13 @@ namespace gl {
         return v[i];
     }
     vec3 Model::vert(int iface, int nthvert) const noexcept {
-        return v[f_vrt[iface * 3 + nthvert]];
+        return v[f_vrt[iface * 3 + nthvert]] + global_transform;
     }
     vec3 Model::normal(int iface, int nthvert) const noexcept {
         return vn[f_nrm[iface * 3 + nthvert]];
     }
+    vec3 Model::center() {
+        return local_center + global_transform;
+    }
+
 } // namespace gl

@@ -14,10 +14,12 @@ namespace gl {
         std::vector<int> f_nrm; // face indices to vn
         std::vector<int> f_tex; // face indices to vt
 
+        vec3 local_center{}; // center in model space
+
       public:
-        vec3 center{};
         double radius{};
         std::string name{};
+        vec3 global_transform{};
 
         Model(const std::filesystem::path& filename);
         [[nodiscard]] size_t nverts() const noexcept;
@@ -29,5 +31,6 @@ namespace gl {
              int nthvert) const noexcept; // returns vertex of specific face 0<= i < 3
         [[nodiscard]] vec3
         normal(int iface, int nthvert) const noexcept; // returns normal of specific face 0<= i < 3
+        vec3 center();
     };
 } // namespace gl

@@ -36,7 +36,7 @@ namespace gl {
     void init_perspective(double fov, double aspect, double near, double far);
     void init_viewport(int x, int y, int w, int h);
     void init_zbuffer(const int width, const int height);
-    bool is_visible(vec3& center, double radius);
+    bool is_visible(const vec3& center, const double radius);
     ClipVertex clip_edge(const ClipVertex& a, const ClipVertex& b);
     int clip_near_plane(const std::array<ClipVertex, 3>& in,
                         std::array<std::array<ClipVertex, 3>, 2>& out_tris);

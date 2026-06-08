@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     ImVec2 viewport_size(width, height);
-    auto selected_model = -1;
+    auto model_index = -1;
 
     while (!WindowShouldClose()) {
         width = viewport_size.x;
@@ -77,7 +77,8 @@ int main(int argc, char** argv) {
         std::fill(framebuffer.data.begin(), framebuffer.data.end(), gl::Color{0, 0, 0, 255});
         auto phong_l = ((gl::ModelView * vec4{light.x(), light.y(), light.z(), 0}).xyz().norm());
         for (auto model : models) {
-            if (gl::is_visible(model.center, model.radius)) {
+            auto center = model.center();
+            if (gl::is_visible(center, model.radius)) {
 #pragma omp parallel for schedule(dynamic)
                 for (size_t f = 0; f < model.nfaces(); f++) {
                     PhongShader local = {model, light};
@@ -146,20 +147,31 @@ int main(int argc, char** argv) {
             models.emplace_back(path);
         }
         for (int i = 0; i < models.size(); i++) {
-            if (ImGui::Selectable(models[i].name.data(), i == selected_model)) {
-                selected_model = i;
+            if (ImGui::Selectable(models[i].name.data(), i == model_index)) {
+                model_index = i;
             }
         }
         ImGui::End();
 
         ImGui::Begin("Model Attributes");
-        if (selected_model >= 0 && selected_model < models.size()) {
-            auto& m = models[selected_model];
+        auto& m = models[model_index];
+        if (model_index >= 0 && model_index < models.size()) {
+            if (ImGui::CollapsingHeader("Transform")) {
+                ImGui::DragScalarN("Translate",
+                                   ImGuiDataType_Double,
+                                   &m.global_transform.x(),
+                                   3,
+                                   0.1f, // v_speed — smaller = finer
+                                   NULL,
+                                   NULL,    // no min/max clamping
+                                   "%.4f"); // fewer decimals
+            }
+
             ImGui::Text("Name: %s", m.name.data());
             ImGui::Text("Vertices: %zu", m.nverts());
             ImGui::Text("Faces: %zu", m.nfaces());
             ImGui::Text("Radius: %.3f", m.radius);
-            ImGui::Text("Center: %.3f, %.3f, %.3f", m.center.x(), m.center.y(), m.center.z());
+            ImGui::Text("Center: %.3f, %.3f, %.3f", m.center().x(), m.center().y(), m.center().z());
         } else {
             ImGui::Text("No model selected");
         }
