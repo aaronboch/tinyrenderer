@@ -31,8 +31,9 @@ int main(int argc, char** argv) {
 
     gl::Framebuffer framebuffer(width, height);
 
-    gl::Model model{argv[1]};
-    PhongShader shader(model, light);
+    gl::Model m{argv[1]};
+    std::vector<gl::Model> models{};
+    models.push_back(m);
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(width, height, "tinyrenderer");
@@ -70,48 +71,54 @@ int main(int argc, char** argv) {
 
         camera.update();
         gl::lookat(camera.eye(), camera.center(), camera.up());
-        shader.l = ((gl::ModelView * vec4{light.x(), light.y(), light.z(), 0}).xyz().norm());
 
         gl::init_zbuffer(width, height);
         std::fill(framebuffer.data.begin(), framebuffer.data.end(), gl::Color{0, 0, 0, 255});
-        if (gl::is_visible(model.center, model.radius)) {
+
+        for (auto model : models) {
+            if (gl::is_visible(model.center, model.radius)) {
 #pragma omp parallel for schedule(dynamic)
-            for (size_t f = 0; f < model.nfaces(); f++) {
-                PhongShader local = shader;
-                local.color = {static_cast<uint8_t>(128),
-                               static_cast<uint8_t>(128),
-                               static_cast<uint8_t>(128),
-                               255};
-                std::array<gl::ClipVertex, 3> verts = {{
-                    {local.vertex(f, 0), local.tri[0]},
-                    {local.vertex(f, 1), local.tri[1]},
-                    {local.vertex(f, 2), local.tri[2]},
-                }};
+                for (size_t f = 0; f < model.nfaces(); f++) {
+                    PhongShader local = {m, light};
+                    local.l =
+                        ((gl::ModelView * vec4{light.x(), light.y(), light.z(), 0}).xyz().norm());
 
-                // backface culling
-                auto ndc0 = verts[0].clip / verts[0].clip.w();
-                auto ndc1 = verts[1].clip / verts[1].clip.w();
-                auto ndc2 = verts[2].clip / verts[2].clip.w();
-                double signed_area = (ndc1.x() - ndc0.x()) * (ndc2.y() - ndc0.y()) -
-                                     (ndc1.y() - ndc0.y()) * (ndc2.x() - ndc0.x());
-                if (signed_area < 0)
-                    continue;
+                    local.color = {static_cast<uint8_t>(128),
+                                   static_cast<uint8_t>(128),
+                                   static_cast<uint8_t>(128),
+                                   255};
+                    std::array<gl::ClipVertex, 3> verts = {{
+                        {local.vertex(f, 0), local.tri[0]},
+                        {local.vertex(f, 1), local.tri[1]},
+                        {local.vertex(f, 2), local.tri[2]},
+                    }};
 
-                if (verts[0].clip.z() + verts[0].clip.w() > 0 &&
-                    verts[1].clip.z() + verts[1].clip.w() > 0 &&
-                    verts[2].clip.z() + verts[2].clip.w() > 0) {
-                    gl::rasterize(
-                        {verts[0].clip, verts[1].clip, verts[2].clip}, local, framebuffer);
-                } else {
-                    std::array<std::array<gl::ClipVertex, 3>, 2> clipped;
-                    int n = gl::clip_near_plane(verts, clipped);
-                    for (int t = 0; t < n; t++) {
-                        local.tri[0] = clipped[t][0].eye;
-                        local.tri[1] = clipped[t][1].eye;
-                        local.tri[2] = clipped[t][2].eye;
-                        gl::rasterize({clipped[t][0].clip, clipped[t][1].clip, clipped[t][2].clip},
-                                      local,
-                                      framebuffer);
+                    // backface culling
+                    auto ndc0 = verts[0].clip / verts[0].clip.w();
+                    auto ndc1 = verts[1].clip / verts[1].clip.w();
+                    auto ndc2 = verts[2].clip / verts[2].clip.w();
+                    double signed_area = (ndc1.x() - ndc0.x()) * (ndc2.y() - ndc0.y()) -
+                                         (ndc1.y() - ndc0.y()) * (ndc2.x() - ndc0.x());
+                    if (signed_area < 0)
+                        continue;
+
+                    if (verts[0].clip.z() + verts[0].clip.w() > 0 &&
+                        verts[1].clip.z() + verts[1].clip.w() > 0 &&
+                        verts[2].clip.z() + verts[2].clip.w() > 0) {
+                        gl::rasterize(
+                            {verts[0].clip, verts[1].clip, verts[2].clip}, local, framebuffer);
+                    } else {
+                        std::array<std::array<gl::ClipVertex, 3>, 2> clipped;
+                        int n = gl::clip_near_plane(verts, clipped);
+                        for (int t = 0; t < n; t++) {
+                            local.tri[0] = clipped[t][0].eye;
+                            local.tri[1] = clipped[t][1].eye;
+                            local.tri[2] = clipped[t][2].eye;
+                            gl::rasterize(
+                                {clipped[t][0].clip, clipped[t][1].clip, clipped[t][2].clip},
+                                local,
+                                framebuffer);
+                        }
                     }
                 }
             }
