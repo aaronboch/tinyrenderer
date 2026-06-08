@@ -1,7 +1,9 @@
 #include "camera.hpp"
 #include "geometry.hpp"
+#include "imgui.h"
 #include "model.hpp"
 #include "our_gl.hpp"
+#include "rlImGui.h"
 #include "shader.hpp"
 
 #include <algorithm>
@@ -44,9 +46,15 @@ int main(int argc, char** argv) {
     };
     Texture2D tex = LoadTextureFromImage(image);
 
+    rlImGuiSetup(true);
+    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+    ImVec2 viewport_size(width, height);
     while (!WindowShouldClose()) {
-        width = GetScreenWidth();
-        height = GetScreenHeight();
+        width = viewport_size.x;
+        height = viewport_size.y;
+        if (width < 1 || height < 1)
+            continue;
         if (width != image.width || height != image.height) {
             framebuffer.resize(width, height);
             image.data = framebuffer.data.data();
@@ -111,12 +119,19 @@ int main(int argc, char** argv) {
         }
 
         UpdateTexture(tex, framebuffer.data.data());
-
         SetWindowTitle(TextFormat("tinyrenderer | %i FPS", GetFPS()));
         BeginDrawing();
-
         ClearBackground(BLACK);
-        DrawTexture(tex, 0, 0, WHITE);
+
+        rlImGuiBegin();
+        ImGui::DockSpaceOverViewport();
+        ImGui::Begin("Viewport");
+        viewport_size = ImGui::GetContentRegionAvail();
+        viewport_size.x = std::max(viewport_size.x, 64.0f);
+        viewport_size.y = std::max(viewport_size.y, 64.0f);
+        rlImGuiImage(&tex);
+        ImGui::End();
+        rlImGuiEnd();
 
         EndDrawing();
     }
