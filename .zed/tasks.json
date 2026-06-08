@@ -25,10 +25,10 @@
   },
   {
     "label": "build-run-project",
-    "command": "cmake -B build/release && cmake --build build/release -j && ./run-project.fish",
+    "command": "cmake -B build/release && cmake --build build/release -j && build/release/tinyrenderer",
   },
   {
     "label": "run-project",
-    "command": "./run-project.fish",
+    "command": "build/release/tinyrenderer",
   },
 ]

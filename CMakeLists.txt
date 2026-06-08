@@ -40,14 +40,19 @@ set(RLIMGUI_SOURCES
     ${CMAKE_SOURCE_DIR}/third_party/rlImGui/rlImGui.cpp
 )
 
+set(TINYFD_SOURCES
+    ${CMAKE_SOURCE_DIR}/third_party/tinyfd/tinyfiledialogs.cpp
+)
+
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 list(TRANSFORM SOURCES PREPEND "${SRC_DIR}/")
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES} ${RLIMGUI_SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES} ${RLIMGUI_SOURCES} ${TINYFD_SOURCES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/third_party/imgui
     ${CMAKE_SOURCE_DIR}/third_party/rlImGui
+    ${CMAKE_SOURCE_DIR}/third_party/tinyfd
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)
