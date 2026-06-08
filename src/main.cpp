@@ -142,9 +142,14 @@ int main(int argc, char** argv) {
         ImGui::Begin("Models");
         if (ImGui::Button("Load Model")) {
             const char* filterPatterns[] = {"*.obj"};
-            std::filesystem::path path =
-                tinyfd_openFileDialog("Load Model", "./obj", 1, filterPatterns, "OBJ files", 0);
-            models.emplace_back(path);
+            if (auto result = tinyfd_openFileDialog(
+                    "Load Model", "./obj", 1, filterPatterns, "OBJ files", 1)) {
+                std::istringstream tis{result};
+                std::string seg;
+                while (std::getline(tis, seg, '|')) {
+                    models.emplace_back(seg);
+                }
+            }
         }
         for (int i = 0; i < models.size(); i++) {
             if (ImGui::Selectable(models[i].name.data(), i == model_index)) {
