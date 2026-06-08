@@ -99,6 +99,14 @@ struct vec {
         return ret;
     }
 
+    constexpr vec<n> operator*(const vec<n>& other) const noexcept {
+        vec<n> ret{};
+        for (size_t i = 0; i < n; i++) {
+            ret[i] = data[i] * other[i];
+        }
+        return ret;
+    }
+
     [[nodiscard]]
     constexpr vec<n> operator/(double scalar) const noexcept {
         vec<n> ret{};
@@ -343,3 +351,14 @@ struct mat {
 using mat2 = mat<2, 2>;
 using mat3 = mat<3, 3>;
 using mat4 = mat<4, 4>;
+
+inline mat3 rotation_matrix(double x, double y, double z) {
+    x = x * M_PI / 180.0;
+    y = y * M_PI / 180.0;
+    z = z * M_PI / 180.0;
+    mat3 r_x = {{{{1, 0, 0}, {0, cos(x), -sin(x)}, {0, sin(x), cos(x)}}}};
+    mat3 r_y = {{{{cos(y), 0, sin(y)}, {0, 1, 0}, {-sin(y), 0, cos(y)}}}};
+    mat3 r_z = {{{{cos(z), -sin(z), 0}, {sin(z), cos(z), 0}, {0, 0, 1}}}};
+
+    return r_z * r_y * r_x;
+}

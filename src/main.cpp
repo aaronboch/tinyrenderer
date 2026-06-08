@@ -76,9 +76,9 @@ int main(int argc, char** argv) {
         gl::init_zbuffer(width, height);
         std::fill(framebuffer.data.begin(), framebuffer.data.end(), gl::Color{0, 0, 0, 255});
         auto phong_l = ((gl::ModelView * vec4{light.x(), light.y(), light.z(), 0}).xyz().norm());
-        for (auto model : models) {
+        for (auto& model : models) {
             auto center = model.center();
-            if (gl::is_visible(center, model.radius)) {
+            if (gl::is_visible(center, model.radius())) {
 #pragma omp parallel for schedule(dynamic)
                 for (size_t f = 0; f < model.nfaces(); f++) {
                     PhongShader local = {model, light};
@@ -161,22 +161,41 @@ int main(int argc, char** argv) {
         ImGui::Begin("Model Attributes");
         auto& m = models[model_index];
         if (model_index >= 0 && model_index < models.size()) {
-            if (ImGui::CollapsingHeader("Transform")) {
-                ImGui::DragScalarN("Translate",
+            if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::DragScalarN("Translate XYZ",
                                    ImGuiDataType_Double,
-                                   &m.global_transform.x(),
+                                   &m.global_translation,
                                    3,
                                    0.1f, // v_speed — smaller = finer
                                    NULL,
-                                   NULL,    // no min/max clamping
-                                   "%.4f"); // fewer decimals
+                                   NULL, // no min/max clamping
+                                   "%.4f");
+                ImGui::DragScalarN("Scale XYZ",
+                                   ImGuiDataType_Double,
+                                   &m.global_scale,
+                                   3,
+                                   0.1f,
+                                   NULL,
+                                   NULL,
+                                   "%.4f");
+                ImGui::DragScalarN("Rotation XYZ",
+                                   ImGuiDataType_Double,
+                                   &m.global_rotation,
+                                   3,
+                                   0.1f,
+                                   NULL,
+                                   NULL,
+                                   "%.4f");
             }
 
-            ImGui::Text("Name: %s", m.name.data());
-            ImGui::Text("Vertices: %zu", m.nverts());
-            ImGui::Text("Faces: %zu", m.nfaces());
-            ImGui::Text("Radius: %.3f", m.radius);
-            ImGui::Text("Center: %.3f, %.3f, %.3f", m.center().x(), m.center().y(), m.center().z());
+            if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::Text("Name: %s", m.name.data());
+                ImGui::Text("Vertices: %zu", m.nverts());
+                ImGui::Text("Faces: %zu", m.nfaces());
+                ImGui::Text("Radius: %.3f", m.radius());
+                ImGui::Text(
+                    "Center: %.3f, %.3f, %.3f", m.center().x(), m.center().y(), m.center().z());
+            }
         } else {
             ImGui::Text("No model selected");
         }

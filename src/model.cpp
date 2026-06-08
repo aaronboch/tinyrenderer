@@ -1,5 +1,6 @@
 #include "model.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -68,7 +69,7 @@ namespace gl {
         }
         local_center = sum / v.size();
         for (auto vtx : v) {
-            radius = std::max(radius, (vtx - local_center).len());
+            local_radius = std::max(local_radius, (vtx - local_center).len());
         }
     }
 
@@ -81,14 +82,27 @@ namespace gl {
     vec3 Model::vert(int i) const noexcept {
         return v[i];
     }
+
     vec3 Model::vert(int iface, int nthvert) const noexcept {
-        return v[f_vrt[iface * 3 + nthvert]] + global_transform;
+        vec3 sv = v[f_vrt[iface * 3 + nthvert]];
+        // scale
+        sv = {sv.x() * global_scale.x(), sv.y() * global_scale.y(), sv.z() * global_scale.z()};
+        // rotate
+        auto rot = rotation_matrix(global_rotation.x(), global_rotation.y(), global_rotation.z());
+        sv = rot * sv;
+
+        return sv + global_translation;
     }
     vec3 Model::normal(int iface, int nthvert) const noexcept {
-        return vn[f_nrm[iface * 3 + nthvert]];
+        auto rot = rotation_matrix(global_rotation.x(), global_rotation.y(), global_rotation.z());
+        return rot * vn[f_vrt[iface * 3 + nthvert]];
     }
     vec3 Model::center() {
-        return local_center + global_transform;
+        return local_center + global_translation;
+    }
+
+    double Model::radius() {
+        return local_radius + std::max({global_scale.x(), global_scale.y(), global_scale.z()});
     }
 
 } // namespace gl

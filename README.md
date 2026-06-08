@@ -56,7 +56,7 @@ Or use the Zed task (`run-project`), which fuzzy-finds `.obj` files and prompts 
   - [x] Basic ImGui Setup
   - [x] Adding ability to load new models from ImGui 
   - [ ] Adding controls for variables
-    - [ ] Model position/rotation/scale
+    - [x] Model position/rotation/scale
     - [ ] Shader properties (e.g. Light direction, Roughness, etc.)
     - [ ] Camera position/rotation
 
