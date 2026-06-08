@@ -17,6 +17,8 @@ namespace gl {
       public:
         vec3 center{};
         double radius{};
+        std::string name{};
+
         Model(const std::filesystem::path& filename);
         [[nodiscard]] size_t nverts() const noexcept;
         [[nodiscard]] size_t nfaces() const noexcept;

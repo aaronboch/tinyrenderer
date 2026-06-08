@@ -7,6 +7,7 @@
 namespace gl {
     Model::Model(const std::filesystem::path& filename) {
         std::ifstream input{filename};
+        name = filename.filename().string();
         vec3 sum{};
         if (!input.is_open())
             throw std::runtime_error("Cannot open model file");

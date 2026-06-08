@@ -50,6 +50,8 @@ int main(int argc, char** argv) {
     ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     ImVec2 viewport_size(width, height);
+    auto selected_model = -1;
+
     while (!WindowShouldClose()) {
         width = viewport_size.x;
         height = viewport_size.y;
@@ -143,7 +145,24 @@ int main(int argc, char** argv) {
                 tinyfd_openFileDialog("Load Model", "./obj", 1, filterPatterns, "OBJ files", 0);
             models.emplace_back(path);
         }
+        for (int i = 0; i < models.size(); i++) {
+            if (ImGui::Selectable(models[i].name.data(), i == selected_model)) {
+                selected_model = i;
+            }
+        }
+        ImGui::End();
 
+        ImGui::Begin("Model Attributes");
+        if (selected_model >= 0 && selected_model < models.size()) {
+            auto& m = models[selected_model];
+            ImGui::Text("Name: %s", m.name.data());
+            ImGui::Text("Vertices: %zu", m.nverts());
+            ImGui::Text("Faces: %zu", m.nfaces());
+            ImGui::Text("Radius: %.3f", m.radius);
+            ImGui::Text("Center: %.3f, %.3f, %.3f", m.center.x(), m.center.y(), m.center.z());
+        } else {
+            ImGui::Text("No model selected");
+        }
         ImGui::End();
 
         rlImGuiEnd();
