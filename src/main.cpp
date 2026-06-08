@@ -53,8 +53,7 @@ int main(int argc, char** argv) {
     while (!WindowShouldClose()) {
         width = viewport_size.x;
         height = viewport_size.y;
-        if (width < 1 || height < 1)
-            continue;
+
         if (width != image.width || height != image.height) {
             framebuffer.resize(width, height);
             image.data = framebuffer.data.data();
