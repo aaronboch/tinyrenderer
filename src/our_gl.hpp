@@ -8,7 +8,6 @@ namespace gl {
     struct ClipVertex {
         vec4 clip;
         vec3 eye;
-        // vec3 norm  when per vertex normals are implemented
     };
 
     struct Color {

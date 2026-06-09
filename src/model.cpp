@@ -36,7 +36,7 @@ namespace gl {
             } else if (line.starts_with("vt ")) {
                 float x, y, z;
                 if (read_vec3(iss, x, y, z))
-                    vt.push_back({x, y, z});
+                    vt.push_back({x, y});
             } else if (line.starts_with("f ")) {
                 std::string token;
                 std::istringstream iss{line};
@@ -95,7 +95,7 @@ namespace gl {
     }
     vec3 Model::normal(int iface, int nthvert) const noexcept {
         auto rot = rotation_matrix(global_rotation.x(), global_rotation.y(), global_rotation.z());
-        return rot * vn[f_vrt[iface * 3 + nthvert]];
+        return rot * vn[f_nrm[iface * 3 + nthvert]];
     }
     vec3 Model::center() const noexcept {
         return local_center + global_translation;
@@ -111,8 +111,21 @@ namespace gl {
     void Model::load_texture(std::filesystem::path& filename) noexcept {
         texture.read_tga_file(filename.string().c_str());
     }
-    bool Model::has_uvs() const noexcept {
+    bool Model::has_uv_indicies() const noexcept {
         return vt.size() > 0 && f_tex.size() > 0;
     }
+    bool Model::has_normal_map() const noexcept {
+        return normal_map.height() != 0;
+    }
+    vec2 Model::uv(int iface, int nthvert) const noexcept {
+        return vt[f_tex[iface * 3 + nthvert]];
+    }
+    vec4 Model::normal(vec2 uv) const noexcept {
+        TGAColor c = normal_map.get(uv.x(), uv.y());
 
+        return {((c.bgra[2] / 255.) * 2 - 1),
+                ((c.bgra[1] / 255.) * 2 - 1),
+                ((c.bgra[0] / 255.) * 2 - 1),
+                0};
+    }
 } // namespace gl

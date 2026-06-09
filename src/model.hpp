@@ -10,7 +10,7 @@ namespace gl {
     class Model {
         std::vector<vec3> v;
         std::vector<vec3> vn;   // vertex normals
-        std::vector<vec3> vt;   // vertex texture coords
+        std::vector<vec2> vt;   // vertex texture coords
         std::vector<int> f_vrt; // face indices to v
         std::vector<int> f_nrm; // face indices to vn
         std::vector<int> f_tex; // face indices to vt
@@ -43,6 +43,11 @@ namespace gl {
         void load_normal_map(std::filesystem::path& filename) noexcept;
         void load_texture(std::filesystem::path& filename) noexcept;
         [[nodiscard]]
-        bool has_uvs() const noexcept;
+        bool has_uv_indicies() const noexcept;
+        [[nodiscard]]
+        bool has_normal_map() const noexcept;
+        [[nodiscard]]
+        vec2 uv(int iface, int nthvert) const noexcept;
+        [[nodiscard]] vec4 normal(vec2 uv) const noexcept;
     };
 } // namespace gl

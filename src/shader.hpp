@@ -6,10 +6,10 @@
 
 struct PhongShader : gl::IShader {
     const gl::Model& model;
-    gl::Color color{};
     vec3 l{};
     vec3 tri[3]; // tri in eye coordinates
     vec3 tri_nrm[3];
+    vec2 tri_uv[3];
     vec3 eye_pos{0., 0., 0.};
 
     PhongShader(const gl::Model& m, const vec3 light) : model(m) {
@@ -21,40 +21,57 @@ struct PhongShader : gl::IShader {
         vec3 n = model.normal(face, vert);
         tri_nrm[vert] =
             (gl::ModelView.inverse_transpose().value() * vec4{n.x(), n.y(), n.z(), 0.}).xyz();
+        if (model.has_uv_indicies()) {
+            tri_uv[vert] = model.uv(face, vert);
+        }
         vec4 gl_Position = gl::ModelView * vec4{v.x(), v.y(), v.z(), 1.}; // vert into obj coords
         tri[vert] = gl_Position.xyz();                                    // in eye coordiantes
         return gl::Perspective * gl_Position;                             // in clip coords
     }
     virtual std::pair<bool, gl::Color> fragment(const vec3 bar) const {
+        gl::Color gl_FragColor{255, 255, 255, 255};
         double e = 35.;      // shininess exponent
         double ambient = .3; // ambient light intensity
 
         // calculate triangle normal vector
-        vec3 n{};
-        n = (bar.x() * tri_nrm[0] + bar.y() * tri_nrm[1] + bar.z() * tri_nrm[2]);
-        auto r = (2 * n * (n.dot(l)) - l).norm(); // reflection vec
+        if (model.has_uv_indicies() && model.has_normal_map()) {
 
-        // diffuse light intensity
-        auto diff = std::max(0., n.dot(l));
-        // spec light intensity
+            auto uv = bar.x() * tri_uv[0] + bar.y() * tri_uv[1] + bar.z() * tri_uv[2];
+            auto n = gl::ModelView.inverse_transpose().value() * model.normal(uv);
+            vec4 l_4 = {l.x(), l.y(), l.z(), 0};
+            auto r = (2 * n * (n.dot(l_4)) - l_4).norm();
+            auto diff = std::max(0., n.dot(l_4));
+            double spec = std::pow(std::max(r.z(), 0.), e);
 
-        auto P = (tri[0] * bar.x() + tri[1] * bar.y() + tri[2] * bar.z());
-        auto v = (eye_pos - P).norm();
+            gl_FragColor.r *= std::min(1., ambient + .4 * diff + .9 * spec);
+            gl_FragColor.g *= std::min(1., ambient + .4 * diff + .9 * spec);
+            gl_FragColor.b *= std::min(1., ambient + .4 * diff + .9 * spec);
+        } else {
+            gl_FragColor = {128, 128, 128, 255};
+            auto n = bar.x() * tri_nrm[0] + bar.y() * tri_nrm[1] + bar.z() * tri_nrm[2];
+            auto r = (2 * n * (n.dot(l)) - l).norm(); // reflection vec
 
-        double s = r.dot(v);
-        double spec = s > 0 ? pow(s, e) : 0.;
+            // diffuse light intensity
+            auto diff = std::max(0., n.dot(l));
+            // spec light intensity
 
-        vec3 base{color.r / 255., color.g / 255., color.b / 255.};
+            auto P = (tri[0] * bar.x() + tri[1] * bar.y() + tri[2] * bar.z());
+            auto v = (eye_pos - P).norm();
 
-        vec3 color_f = base * (ambient + diff) + (vec3{1, 1, 1} * (spec));
+            double s = r.dot(v);
+            double spec = s > 0 ? pow(s, e) : 0.;
 
-        color_f =
-            vec3{std::min(1., color_f.x()), std::min(1., color_f.y()), std::min(1., color_f.z())};
+            vec3 base{gl_FragColor.r / 255., gl_FragColor.g / 255., gl_FragColor.b / 255.};
 
-        return {false,
-                gl::Color{static_cast<uint8_t>((color_f.x() * 255)),
-                          static_cast<uint8_t>((color_f.y() * 255)),
-                          static_cast<uint8_t>((color_f.z() * 255)),
-                          255}}; // no discard
+            vec3 color_f = base * (ambient + diff) + (vec3{1, 1, 1} * (spec));
+
+            color_f = vec3{
+                std::min(1., color_f.x()), std::min(1., color_f.y()), std::min(1., color_f.z())};
+
+            gl_FragColor.r = static_cast<uint8_t>(color_f.x() * 255);
+            gl_FragColor.g = static_cast<uint8_t>(color_f.y() * 255);
+            gl_FragColor.b = static_cast<uint8_t>(color_f.z() * 255);
+        }
+        return {false, gl_FragColor}; // no discard
     }
 };

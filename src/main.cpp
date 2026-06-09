@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
             UnloadTexture(tex);
             tex = LoadTextureFromImage(image);
             gl::init_viewport(0, 0, width, height); // ← fixes centering
-            gl::init_perspective(70 * M_PI / 180,   // ← fixes aspect ratio
+            gl::init_perspective(camera.fov,        // ← fixes aspect ratio
                                  (double)width / height,
                                  0.1,
                                  1000.0);
@@ -84,10 +84,6 @@ int main(int argc, char** argv) {
                     PhongShader local = {model, light};
                     local.l = phong_l;
 
-                    local.color = {static_cast<uint8_t>(128),
-                                   static_cast<uint8_t>(128),
-                                   static_cast<uint8_t>(128),
-                                   255};
                     std::array<gl::ClipVertex, 3> verts = {{
                         {local.vertex(f, 0), local.tri[0]},
                         {local.vertex(f, 1), local.tri[1]},
@@ -188,7 +184,7 @@ int main(int argc, char** argv) {
                                    "%.3f");
             }
 
-            ImGui::BeginDisabled(!m.has_uvs());
+            ImGui::BeginDisabled(!m.has_uv_indicies());
             if (ImGui::Button("Load Normal Map")) {
                 const char* filterPatterns[] = {"*.tga"};
                 if (auto result = tinyfd_openFileDialog(
