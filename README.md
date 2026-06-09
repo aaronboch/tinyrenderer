@@ -58,7 +58,7 @@ Or use the Zed task (`run-project`), which fuzzy-finds `.obj` files and prompts 
   - [ ] Adding controls for variables
     - [x] Model position/rotation/scale
     - [ ] Shader properties (e.g. Light direction, Roughness, etc.)
-    - [ ] Camera position/rotation
+    - [x] Camera position/rotation etc.
 
 ## License
 MIT — based on [ssloy/tinyrenderer](https://github.com/ssloy/tinyrenderer) (also MIT).

@@ -26,8 +26,8 @@ int main(int argc, char** argv) {
     constexpr vec3 light{1, 1, 1}; // unit length direction to sun
     cam::Camera camera{{-1, 0, 2}, {0, 0, 0}, {0, 1, 0}};
 
-    gl::lookat(camera.eye(), camera.center(), camera.up());
-    gl::init_perspective(70.0 * M_PI / 180.0, (double)width / height, 0.1, 1000.0);
+    gl::lookat(camera.eye, camera.center(), camera.up());
+    gl::init_perspective(camera.fov, (double)width / height, 0.1, 1000.0);
     gl::init_viewport(0, 0, width, height); // build the Viewport matrix
 
     gl::Framebuffer framebuffer(width, height);
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
         }
 
         camera.update();
-        gl::lookat(camera.eye(), camera.center(), camera.up());
+        gl::lookat(camera.eye, camera.center(), camera.up());
 
         gl::init_zbuffer(width, height);
         std::fill(framebuffer.data.begin(), framebuffer.data.end(), gl::Color{0, 0, 0, 255});
@@ -169,7 +169,7 @@ int main(int argc, char** argv) {
                                    0.1f, // v_speed — smaller = finer
                                    NULL,
                                    NULL, // no min/max clamping
-                                   "%.4f");
+                                   "%.3f");
                 ImGui::DragScalarN("Scale XYZ",
                                    ImGuiDataType_Double,
                                    &m.global_scale,
@@ -177,7 +177,7 @@ int main(int argc, char** argv) {
                                    0.1f,
                                    NULL,
                                    NULL,
-                                   "%.4f");
+                                   "%.3f");
                 ImGui::DragScalarN("Rotation XYZ",
                                    ImGuiDataType_Double,
                                    &m.global_rotation,
@@ -185,7 +185,7 @@ int main(int argc, char** argv) {
                                    0.1f,
                                    NULL,
                                    NULL,
-                                   "%.4f");
+                                   "%.3f");
             }
 
             if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -196,8 +196,60 @@ int main(int argc, char** argv) {
                 ImGui::Text(
                     "Center: %.3f, %.3f, %.3f", m.center().x(), m.center().y(), m.center().z());
             }
+
         } else {
             ImGui::Text("No model selected");
+        }
+        ImGui::End();
+
+        ImGui::Begin("Camera");
+        if (ImGui::CollapsingHeader("Controls", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::TextWrapped("Right-click and drag to look around. While right-clicked WASD to "
+                               "move horizontally, Space/Shift to move vertically");
+        }
+
+        if (ImGui::CollapsingHeader("Attributes", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::DragScalarN(
+                "Position", ImGuiDataType_Double, &camera.eye, 3, .01, NULL, NULL, "%.3f");
+
+            ImGui::DragScalar("yaw", ImGuiDataType_Double, &camera.yaw, .01, NULL, NULL, "%.3f");
+            ImGui::DragScalar(
+                "pitch", ImGuiDataType_Double, &camera.pitch, .01, NULL, NULL, "%.3f");
+
+            double fov_min = 1.0;
+            double fov_max = 179.0;
+            double fov_display = camera.fov * 180.0 / M_PI;
+            if (ImGui::DragScalar(
+                    "FOV", ImGuiDataType_Double, &fov_display, 0.1, &fov_min, &fov_max, "%.1f°")) {
+                camera.fov = fov_display * M_PI / 180.0;
+                gl::init_perspective(camera.fov, (double)width / height, 0.1, 1000.0);
+            }
+
+            double speed_display = camera.move_speed * 100.0;
+            if (ImGui::DragScalar(
+                    "Move Speed", ImGuiDataType_Double, &speed_display, .01, NULL, NULL, "%.3f")) {
+                camera.move_speed = speed_display / 100.;
+            }
+
+            double sensetivity_display = camera.sensitivity * 100.0;
+            if (ImGui::DragScalar("Sensitivity",
+                                  ImGuiDataType_Double,
+                                  &sensetivity_display,
+                                  .01,
+                                  NULL,
+                                  NULL,
+                                  "%.3f")) {
+                camera.sensitivity = sensetivity_display / 100.;
+            }
+        }
+
+        if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Text("Eye: %.3f, %.3f, %.3f", camera.eye.x(), camera.eye.y(), camera.eye.z());
+            ImGui::Text("Center: %.3f, %.3f, %.3f",
+                        camera.center().x(),
+                        camera.center().y(),
+                        camera.center().z());
+            ImGui::Text("Up: %.3f, %.3f, %.3f", camera.up().x(), camera.up().y(), camera.up().z());
         }
         ImGui::End();
 
