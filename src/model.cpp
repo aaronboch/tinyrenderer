@@ -121,7 +121,8 @@ namespace gl {
         return vt[f_tex[iface * 3 + nthvert]];
     }
     vec4 Model::normal(vec2 uv) const noexcept {
-        TGAColor c = normal_map.get(uv.x(), uv.y());
+        TGAColor c =
+            normal_map.get(uv.x() * normal_map.width(), (1 - uv.y()) * normal_map.height());
 
         return {((c.bgra[2] / 255.) * 2 - 1),
                 ((c.bgra[1] / 255.) * 2 - 1),
