@@ -97,11 +97,11 @@ namespace gl {
         auto rot = rotation_matrix(global_rotation.x(), global_rotation.y(), global_rotation.z());
         return rot * vn[f_vrt[iface * 3 + nthvert]];
     }
-    vec3 Model::center() {
+    vec3 Model::center() const noexcept {
         return local_center + global_translation;
     }
 
-    double Model::radius() {
+    double Model::radius() const noexcept {
         return local_radius * std::max({global_scale.x(), global_scale.y(), global_scale.z()});
     }
 

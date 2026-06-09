@@ -17,11 +17,13 @@ namespace cam {
 
         Camera(vec3 eye, vec3 center, vec3 up);
 
-        void update();
-
-        vec3 center() const;
-        vec3 up() const;
-        vec3 forward() const;
+        void update() noexcept;
+        [[nodiscard]]
+        vec3 center() const noexcept;
+        [[nodiscard]]
+        vec3 up() const noexcept;
+        [[nodiscard]]
+        vec3 forward() const noexcept;
     };
 
 } // namespace cam

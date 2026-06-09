@@ -33,7 +33,9 @@ namespace gl {
              int nthvert) const noexcept; // returns vertex of specific face 0<= i < 3
         [[nodiscard]] vec3
         normal(int iface, int nthvert) const noexcept; // returns normal of specific face 0<= i < 3
-        vec3 center();
-        double radius();
+        [[nodiscard]]
+        vec3 center() const noexcept;
+        [[nodiscard]]
+        double radius() const noexcept;
     };
 } // namespace gl

@@ -8,7 +8,7 @@ namespace gl {
     mat4 ModelView{}, Viewport{}, Perspective{};
     std::vector<double> zbuffer;
 
-    void lookat(vec3 eye, vec3 center, vec3 up) {
+    void lookat(vec3 eye, vec3 center, vec3 up) noexcept {
         vec3 n = (eye - center).norm();
         vec3 l = up.cross(n).norm();
         vec3 m = n.cross(l).norm();
@@ -21,23 +21,23 @@ namespace gl {
                            {0, 0, 1, -center.z()},
                            {0, 0, 0, 1}}}};
     }
-    void init_perspective(double fov, double aspect, double near, double far) {
+    void init_perspective(double fov, double aspect, double near, double far) noexcept {
         double t = std::tan(fov / 2.0);
         Perspective = {{{{1.0 / (aspect * t), 0, 0, 0},
                          {0, 1.0 / t, 0, 0},
                          {0, 0, -(far + near) / (far - near), -2 * far * near / (far - near)},
                          {0, 0, -1, 0}}}};
     }
-    void init_viewport(int x, int y, int w, int h) {
+    void init_viewport(int x, int y, int w, int h) noexcept {
         Viewport = {
             {{{w / 2., 0, 0, x + w / 2.}, {0, -h / 2., 0, h / 2.}, {0, 0, 1, 0}, {0, 0, 0, 1}}}};
     }
 
-    void init_zbuffer(const int width, const int height) {
+    void init_zbuffer(const int width, const int height) noexcept {
         zbuffer.assign(width * height, std::numeric_limits<double>::max());
     }
 
-    bool is_visible(const vec3& center, const double radius) {
+    bool is_visible(const vec3& center, const double radius) noexcept {
         auto M = Perspective * ModelView;
         std::array<vec4, 6> frustum_panes = {
             M[0] + M[3], M[3] - M[0], M[1] + M[3], M[3] - M[1], M[2] + M[3], M[3] - M[2]};
@@ -52,7 +52,7 @@ namespace gl {
         return true;
     }
     // creates the new vertex on edge ab where it intersects with the near plane (z + w = 0)
-    ClipVertex clip_edge(const ClipVertex& a, const ClipVertex& b) {
+    ClipVertex clip_edge(const ClipVertex& a, const ClipVertex& b) noexcept {
         // a is outside (z + w <= 0), b is inside (z + w > 0)
         double denom = (b.clip.z() + b.clip.w()) - (a.clip.z() + a.clip.w());
         double t = -(a.clip.z() + a.clip.w()) / denom;
@@ -63,7 +63,7 @@ namespace gl {
     }
     // clips the triangle against the near plane, returns the number of output triangles (0, 1 or 2)
     int clip_near_plane(const std::array<ClipVertex, 3>& in,
-                        std::array<std::array<ClipVertex, 3>, 2>& out_tris) {
+                        std::array<std::array<ClipVertex, 3>, 2>& out_tris) noexcept {
         std::array<ClipVertex, 4> out{};
         int nout{};
         for (size_t i{}; i < in.size(); i++) {
@@ -95,7 +95,7 @@ namespace gl {
         }
     }
 
-    void rasterize(const Triangle& clip, const IShader& shader, Framebuffer& framebuffer) {
+    void rasterize(const Triangle& clip, const IShader& shader, Framebuffer& framebuffer) noexcept {
         std::array<vec4, 3> ndc = {
             clip[0] / clip[0].w(), clip[1] / clip[1].w(), clip[2] / clip[2].w()};
         std::array<vec2, 3> screen = {

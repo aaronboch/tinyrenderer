@@ -352,7 +352,8 @@ using mat2 = mat<2, 2>;
 using mat3 = mat<3, 3>;
 using mat4 = mat<4, 4>;
 
-inline mat3 rotation_matrix(double x, double y, double z) {
+[[nodiscard]]
+inline mat3 rotation_matrix(double x, double y, double z) noexcept {
     x = x * M_PI / 180.0;
     y = y * M_PI / 180.0;
     z = z * M_PI / 180.0;

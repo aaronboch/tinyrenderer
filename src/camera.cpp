@@ -12,7 +12,7 @@ namespace cam {
         pitch = std::asin(dir.y());
     }
 
-    void Camera::update() {
+    void Camera::update() noexcept {
         bool controlling = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
         if (controlling && !was_controlling_)
             DisableCursor();
@@ -44,15 +44,15 @@ namespace cam {
         }
     }
 
-    vec3 Camera::up() const {
+    vec3 Camera::up() const noexcept {
         return up_;
     }
 
-    vec3 Camera::center() const {
+    vec3 Camera::center() const noexcept {
         return eye + forward();
     }
 
-    vec3 Camera::forward() const {
+    vec3 Camera::forward() const noexcept {
         return vec3{
             std::cos(yaw) * std::cos(pitch),
             std::sin(pitch),
