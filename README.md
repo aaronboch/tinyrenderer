@@ -1,8 +1,5 @@
 # Tinyrenderer
-Simple software renderer in C++ using raylib for window management and input handling.
-The renderer is based on Dmitry V. Sokolovs tinyrenderer hands-on course, which can be found here:
-- https://haqr.eu/tinyrenderer/
-- https://github.com/ssloy/tinyrenderer
+A real-time software renderer in C++ built by following [ssloy's tinyrenderer course](https://haqr.eu/tinyrenderer/), extended with interactive rendering via Raylib, parallel rasterization using OpenMP, and an ImGui control panel for manipulating the scene at runtime.
 
 ## Building
 
@@ -62,4 +59,4 @@ Or use the Zed task (`run-project`), which fuzzy-finds `.obj` files and prompts 
     - [x] Camera position/rotation etc.
 
 ## License
-MIT — based on [ssloy/tinyrenderer](https://github.com/ssloy/tinyrenderer) (also MIT).
+MIT
