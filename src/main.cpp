@@ -193,6 +193,10 @@ int main(int argc, char** argv) {
                     m.load_normal_map(fp);
                 }
             }
+            ImGui::SameLine();
+            if (ImGui::Button("Unload Normal Map")) {
+                m.unload_normal_map();
+            }
             if (ImGui::Button("Load Texture")) {
                 const char* filterPatterns[] = {"*.tga"};
                 if (auto result = tinyfd_openFileDialog(
@@ -200,6 +204,10 @@ int main(int argc, char** argv) {
                     std::filesystem::path fp = result;
                     m.load_texture(fp);
                 }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Unload Texture")) {
+                m.unload_texture();
             }
             ImGui::EndDisabled();
             if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen)) {

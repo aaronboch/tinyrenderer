@@ -41,7 +41,9 @@ namespace gl {
         [[nodiscard]]
         double radius() const noexcept;
         void load_normal_map(std::filesystem::path& filename) noexcept;
+        void unload_normal_map() noexcept;
         void load_texture(std::filesystem::path& filename) noexcept;
+        void unload_texture() noexcept;
         [[nodiscard]]
         bool has_uv_indicies() const noexcept;
         [[nodiscard]]

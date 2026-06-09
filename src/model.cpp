@@ -108,8 +108,14 @@ namespace gl {
     void Model::load_normal_map(std::filesystem::path& filename) noexcept {
         normal_map.read_tga_file(filename.string().c_str());
     }
+    void Model::unload_normal_map() noexcept {
+        normal_map = {};
+    }
     void Model::load_texture(std::filesystem::path& filename) noexcept {
         texture.read_tga_file(filename.string().c_str());
+    }
+    void Model::unload_texture() noexcept {
+        texture = {};
     }
     bool Model::has_uv_indicies() const noexcept {
         return vt.size() > 0 && f_tex.size() > 0;
