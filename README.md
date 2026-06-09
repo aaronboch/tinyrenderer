@@ -34,7 +34,7 @@ Or use the Zed task (`run-project`).
 - [x] Phong reflection model 
   - [x] On faces
   - [x] On vertices
-- [ ] Normal mapping
+- [x] Normal mapping
 - [ ] Texture mapping
 - [ ] Shadow mapping
 - [ ] Ambient occlusion
