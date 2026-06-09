@@ -22,10 +22,10 @@ Not tested — the build system should work with MSVC or MinGW, but you may hit 
 
 ## Usage 
 ```bash
-./build/release/tinyrenderer [path/to/model].obj
+./build/release/tinyrenderer
 ```
 
-Or use the Zed task (`run-project`), which fuzzy-finds `.obj` files and prompts you to pick one.
+Or use the Zed task (`run-project`).
 
 ## Features
 ### From Course
@@ -48,8 +48,8 @@ Or use the Zed task (`run-project`), which fuzzy-finds `.obj` files and prompts 
   - [x] Object-level frustum culling
   - [ ] Blinn-Phong reflection model
 - [x] Controlling Camera
-- [ ] Loading Multiple Models 
-  - [ ] Support for multiple models in the same scene (e.g offsetting postion of each model, etc.)
+- [x] Loading Multiple Models 
+  - [x] Support for multiple models in the same scene (e.g offsetting postion of each model, etc.)
 - [ ] ImGui to Control variables (e.g. Light direction, Roughness, etc.)
   - [x] Basic ImGui Setup
   - [x] Adding ability to load new models from ImGui 
