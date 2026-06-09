@@ -102,7 +102,7 @@ namespace gl {
     }
 
     double Model::radius() {
-        return local_radius + std::max({global_scale.x(), global_scale.y(), global_scale.z()});
+        return local_radius * std::max({global_scale.x(), global_scale.y(), global_scale.z()});
     }
 
 } // namespace gl

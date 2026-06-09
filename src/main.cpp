@@ -159,8 +159,8 @@ int main(int argc, char** argv) {
         ImGui::End();
 
         ImGui::Begin("Model Attributes");
-        auto& m = models[model_index];
         if (model_index >= 0 && model_index < models.size()) {
+            auto& m = models[model_index];
             if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
                 ImGui::DragScalarN("Translate XYZ",
                                    ImGuiDataType_Double,
