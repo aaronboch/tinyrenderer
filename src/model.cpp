@@ -105,4 +105,14 @@ namespace gl {
         return local_radius * std::max({global_scale.x(), global_scale.y(), global_scale.z()});
     }
 
+    void Model::load_normal_map(std::filesystem::path& filename) noexcept {
+        normal_map.read_tga_file(filename.string().c_str());
+    }
+    void Model::load_texture(std::filesystem::path& filename) noexcept {
+        texture.read_tga_file(filename.string().c_str());
+    }
+    bool Model::has_uvs() const noexcept {
+        return vt.size() > 0 && f_tex.size() > 0;
+    }
+
 } // namespace gl

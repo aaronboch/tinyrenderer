@@ -188,6 +188,24 @@ int main(int argc, char** argv) {
                                    "%.3f");
             }
 
+            ImGui::BeginDisabled(!m.has_uvs());
+            if (ImGui::Button("Load Normal Map")) {
+                const char* filterPatterns[] = {"*.tga"};
+                if (auto result = tinyfd_openFileDialog(
+                        "Load Normal Map", "./obj/", 1, filterPatterns, "TGA files", 0)) {
+                    std::filesystem::path fp = result;
+                    m.load_normal_map(fp);
+                }
+            }
+            if (ImGui::Button("Load Texture")) {
+                const char* filterPatterns[] = {"*.tga"};
+                if (auto result = tinyfd_openFileDialog(
+                        "Load Texture", "./obj/", 1, filterPatterns, "TGA files", 0)) {
+                    std::filesystem::path fp = result;
+                    m.load_texture(fp);
+                }
+            }
+            ImGui::EndDisabled();
             if (ImGui::CollapsingHeader("Debug", ImGuiTreeNodeFlags_DefaultOpen)) {
                 ImGui::Text("Name: %s", m.name.data());
                 ImGui::Text("Vertices: %zu", m.nverts());

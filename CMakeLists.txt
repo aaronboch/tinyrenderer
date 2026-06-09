@@ -26,7 +26,7 @@ endif()
 find_package(OpenMP COMPONENTS CXX)
 find_package(raylib REQUIRED)
 
-set(SOURCES main.cpp model.cpp our_gl.cpp camera.cpp)
+set(SOURCES main.cpp model.cpp our_gl.cpp camera.cpp ../third_party/ssloy/tgaimage.cpp)
 
 set(IMGUI_SOURCES
     ${CMAKE_SOURCE_DIR}/third_party/imgui/imgui.cpp
@@ -53,6 +53,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/third_party/imgui
     ${CMAKE_SOURCE_DIR}/third_party/rlImGui
     ${CMAKE_SOURCE_DIR}/third_party/tinyfd
+    ${CMAKE_SOURCE_DIR}/third_party/ssloy
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)

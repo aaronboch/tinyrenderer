@@ -1,5 +1,6 @@
 #pragma once
 #include "geometry.hpp"
+#include "tgaimage.h"
 
 #include <filesystem>
 #include <vector>
@@ -13,6 +14,8 @@ namespace gl {
         std::vector<int> f_vrt; // face indices to v
         std::vector<int> f_nrm; // face indices to vn
         std::vector<int> f_tex; // face indices to vt
+        TGAImage normal_map{};
+        TGAImage texture{};
 
         vec3 local_center{}; // center in model space
         double local_radius{};
@@ -37,5 +40,9 @@ namespace gl {
         vec3 center() const noexcept;
         [[nodiscard]]
         double radius() const noexcept;
+        void load_normal_map(std::filesystem::path& filename) noexcept;
+        void load_texture(std::filesystem::path& filename) noexcept;
+        [[nodiscard]]
+        bool has_uvs() const noexcept;
     };
 } // namespace gl
