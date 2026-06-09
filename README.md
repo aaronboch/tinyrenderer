@@ -48,6 +48,7 @@ Or use the Zed task (`run-project`), which fuzzy-finds `.obj` files and prompts 
   - [x] Parallel face loop instead of small part in rasterize function.
   - [x] General performance improvements
   - [x] Backface culling
+  - [x] Object-level frustum culling
   - [ ] Blinn-Phong reflection model
 - [x] Controlling Camera
 - [ ] Loading Multiple Models 
