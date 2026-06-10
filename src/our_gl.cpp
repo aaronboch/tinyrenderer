@@ -104,9 +104,6 @@ namespace gl {
         mat3 ABC = {{{{screen[0].x(), screen[0].y(), 1.},
                       {screen[1].x(), screen[1].y(), 1.},
                       {screen[2].x(), screen[2].y(), 1.}}}};
-        if (std::abs(ABC.det()) < 1) {
-            return;
-        }
 
         auto mmx = std::minmax({screen[0].x(), screen[1].x(), screen[2].x()});
         auto mmy = std::minmax({screen[0].y(), screen[1].y(), screen[2].y()});
