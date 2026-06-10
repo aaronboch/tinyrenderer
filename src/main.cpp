@@ -90,32 +90,30 @@ int main(int argc, char** argv) {
                         {local.vertex(f, 2), local.tri[2]},
                     }};
 
-                    // backface culling
-                    auto ndc0 = verts[0].clip / verts[0].clip.w();
-                    auto ndc1 = verts[1].clip / verts[1].clip.w();
-                    auto ndc2 = verts[2].clip / verts[2].clip.w();
-                    double signed_area = (ndc1.x() - ndc0.x()) * (ndc2.y() - ndc0.y()) -
-                                         (ndc1.y() - ndc0.y()) * (ndc2.x() - ndc0.x());
-                    if (signed_area < 0)
-                        continue;
+                    int num_tris = 1;
+                    std::array<std::array<gl::ClipVertex, 3>, 2> tris = {{verts, {}}};
 
-                    if (verts[0].clip.z() + verts[0].clip.w() > 0 &&
-                        verts[1].clip.z() + verts[1].clip.w() > 0 &&
-                        verts[2].clip.z() + verts[2].clip.w() > 0) {
-                        gl::rasterize(
-                            {verts[0].clip, verts[1].clip, verts[2].clip}, local, framebuffer);
-                    } else {
-                        std::array<std::array<gl::ClipVertex, 3>, 2> clipped;
-                        int n = gl::clip_near_plane(verts, clipped);
-                        for (int t = 0; t < n; t++) {
-                            local.tri[0] = clipped[t][0].eye;
-                            local.tri[1] = clipped[t][1].eye;
-                            local.tri[2] = clipped[t][2].eye;
-                            gl::rasterize(
-                                {clipped[t][0].clip, clipped[t][1].clip, clipped[t][2].clip},
-                                local,
-                                framebuffer);
-                        }
+                    if (!(verts[0].clip.z() + verts[0].clip.w() > 0 &&
+                          verts[1].clip.z() + verts[1].clip.w() > 0 &&
+                          verts[2].clip.z() + verts[2].clip.w() > 0)) {
+                        num_tris = gl::clip_near_plane(verts, tris);
+                    }
+
+                    for (int t = 0; t < num_tris; t++) {
+                        auto& tri = tris[t];
+
+                        auto ndc0 = tri[0].clip / tri[0].clip.w();
+                        auto ndc1 = tri[1].clip / tri[1].clip.w();
+                        auto ndc2 = tri[2].clip / tri[2].clip.w();
+                        double signed_area = (ndc1.x() - ndc0.x()) * (ndc2.y() - ndc0.y()) -
+                                             (ndc1.y() - ndc0.y()) * (ndc2.x() - ndc0.x());
+                        if (signed_area < 0)
+                            continue;
+
+                        local.tri[0] = tri[0].eye;
+                        local.tri[1] = tri[1].eye;
+                        local.tri[2] = tri[2].eye;
+                        gl::rasterize({tri[0].clip, tri[1].clip, tri[2].clip}, local, framebuffer);
                     }
                 }
             }
