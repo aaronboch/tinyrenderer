@@ -147,11 +147,27 @@ int main(int argc, char** argv) {
                 }
             }
         }
-        for (int i = 0; i < models.size(); i++) {
-            if (ImGui::Selectable(models[i].name.data(), i == model_index)) {
-                model_index = i;
+        if (ImGui::BeginTable("Models", 2)) {
+            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed);
+
+            for (int i = 0; i < models.size(); i++) {
+                ImGui::TableNextRow();
+
+                ImGui::TableSetColumnIndex(0);
+                ImGui::PushID(i);
+
+                if (ImGui::Selectable(models[i].name.data(), i == model_index)) {
+                    model_index = i;
+                }
+                ImGui::TableSetColumnIndex(1);
+                if (ImGui::Button("X")) {
+                    models.erase(models.cbegin() + i);
+                }
+                ImGui::PopID();
             }
         }
+        ImGui::EndTable();
         ImGui::End();
 
         ImGui::Begin("Model Attributes");
