@@ -38,7 +38,7 @@ Or use the Zed task (`run-project`).
   - [x] Tangent space normal mapping
 - [x] Texture mapping
 - [ ] Shadow mapping
-- [ ] Ambient occlusion
+
 
 ## My additions
 - [x] Raylib instead of rendering out to one image.
