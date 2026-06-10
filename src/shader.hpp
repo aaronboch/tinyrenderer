@@ -6,26 +6,25 @@
 
 struct PhongShader : gl::IShader {
     const gl::Model& model;
-    vec3 l{};
-    vec3 tri[3]; // tri in eye coordinates
-    vec3 tri_nrm[3];
+    vec4 l{};
+    vec4 tri[3]; // tri in eye coordinates
+    vec4 tri_nrm[3];
     vec2 tri_uv[3];
     vec3 eye_pos{0., 0., 0.};
 
     PhongShader(const gl::Model& m, const vec3 light) : model(m) {
-        l = (gl::ModelView * vec4{light.x(), light.y(), light.z(), 0.}).xyz().norm();
+        l = (gl::ModelView * vec4{light.x(), light.y(), light.z(), 0.}).norm();
     }
 
     virtual vec4 vertex(int face, int vert) {
         vec3 v = model.vert(face, vert);
         vec3 n = model.normal(face, vert);
-        tri_nrm[vert] =
-            (gl::ModelView.inverse_transpose().value() * vec4{n.x(), n.y(), n.z(), 0.}).xyz();
+        tri_nrm[vert] = (gl::ModelView.inverse_transpose().value() * vec4{n.x(), n.y(), n.z(), 0.});
         if (model.has_uv_indicies()) {
             tri_uv[vert] = model.uv(face, vert);
         }
         vec4 gl_Position = gl::ModelView * vec4{v.x(), v.y(), v.z(), 1.}; // vert into obj coords
-        tri[vert] = gl_Position.xyz();                                    // in eye coordiantes
+        tri[vert] = gl_Position;                                          // in eye coordiantes
         return gl::Perspective * gl_Position;                             // in clip coords
     }
     virtual std::pair<bool, gl::Color> fragment(const vec3 bar) const {
@@ -35,13 +34,39 @@ struct PhongShader : gl::IShader {
 
         if (model.has_normal_map()) {
             auto uv = bar.x() * tri_uv[0] + bar.y() * tri_uv[1] + bar.z() * tri_uv[2];
-            auto n = (gl::ModelView.inverse_transpose().value() * model.normal(uv)).norm();
-            vec4 l_4 = {l.x(), l.y(), l.z(), 0};
-            auto r = (2 * n * (n.dot(l_4)) - l_4);
-            auto diff = std::max(0., n.dot(l_4));
+
+            // edge vectors
+            auto e0 = tri[1] - tri[0];
+            auto e1 = tri[2] - tri[0];
+            auto u0 = tri_uv[1] - tri_uv[0];
+            auto u1 = tri_uv[2] - tri_uv[0];
+            mat<2, 4> E = {{{e0, e1}}};
+            mat2 U = {u0, u1};
+            auto N = (bar.x() * tri_nrm[0] + bar.y() * tri_nrm[1] + bar.z() * tri_nrm[2]);
+
+            auto inv = U.inverse();
+            vec4 T_vec, B_vec;
+            if (inv) {
+                auto TB = inv.value() * E;
+                T_vec = TB[0].norm();
+                B_vec = TB[1].norm();
+            } else {
+                vec3 n3 = N.xyz();
+                vec3 t3 = (std::abs(n3.x()) < 0.9) ? vec3{1, 0, 0} : vec3{0, 1, 0};
+                t3 = t3.cross(n3).norm();
+                vec3 b3 = n3.cross(t3).norm();
+                T_vec = {t3.x(), t3.y(), t3.z(), 0};
+                B_vec = {b3.x(), b3.y(), b3.z(), 0};
+            }
+
+            mat4 D = {T_vec, B_vec, N, {0, 0, 0, 1}};
+
+            auto n = (D.transpose() * model.normal(uv)).norm();
+            auto r = (2 * n * (n.dot(l)) - l);
+            auto diff = std::max(0., n.dot(l));
 
             auto P = (tri[0] * bar.x() + tri[1] * bar.y() + tri[2] * bar.z());
-            auto v = (eye_pos - P).norm();
+            auto v = (eye_pos - P.xyz()).norm();
             auto v_4 = vec4{v.x(), v.y(), v.z(), 0};
             double s = r.dot(v_4);
             double spec = s > 0 ? pow(s, e) : 0.;
@@ -60,14 +85,14 @@ struct PhongShader : gl::IShader {
             gl_FragColor.b = static_cast<uint8_t>(color_f.z() * 255);
         } else {
             gl_FragColor = {128, 128, 128, 255};
-            auto n = bar.x() * tri_nrm[0] + bar.y() * tri_nrm[1] + bar.z() * tri_nrm[2];
-            auto r = (2 * n * (n.dot(l)) - l).norm(); // reflection vec
+            auto n = (bar.x() * tri_nrm[0] + bar.y() * tri_nrm[1] + bar.z() * tri_nrm[2]).xyz();
+            auto r = (2 * n * (n.dot(l.xyz())) - l.xyz()).norm().xyz(); // reflection vec
 
             // diffuse light intensity
-            auto diff = std::max(0., n.dot(l));
+            auto diff = std::max(0., n.dot(l.xyz()));
             // spec light intensity
 
-            auto P = (tri[0] * bar.x() + tri[1] * bar.y() + tri[2] * bar.z());
+            auto P = (tri[0] * bar.x() + tri[1] * bar.y() + tri[2] * bar.z()).xyz();
             auto v = (eye_pos - P).norm();
 
             double s = r.dot(v);

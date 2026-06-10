@@ -133,10 +133,11 @@ namespace gl {
         TGAColor c =
             normal_map.get(uv.x() * normal_map.width(), (1 - uv.y()) * normal_map.height());
 
-        return {((c.bgra[2] / 255.) * 2 - 1),
-                ((c.bgra[1] / 255.) * 2 - 1),
-                ((c.bgra[0] / 255.) * 2 - 1),
-                0};
+        return (vec4{((c.bgra[2] / 255.) * 2 - 1),
+                     ((c.bgra[1] / 255.) * 2 - 1),
+                     ((c.bgra[0] / 255.) * 2 - 1),
+                     0})
+            .norm();
     }
     vec3 Model::tex(vec2 uv) const noexcept {
         TGAColor c = texture.get(uv.x() * texture.width(), (1 - uv.y()) * texture.height());

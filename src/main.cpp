@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
 
         gl::init_zbuffer(width, height);
         std::fill(framebuffer.data.begin(), framebuffer.data.end(), gl::Color{0, 0, 0, 255});
-        auto phong_l = ((gl::ModelView * vec4{light.x(), light.y(), light.z(), 0}).xyz().norm());
+        auto phong_l = ((gl::ModelView * vec4{light.x(), light.y(), light.z(), 0}).norm());
         for (auto& model : models) {
             auto center = model.center();
             if (gl::is_visible(center, model.radius())) {
@@ -85,9 +85,9 @@ int main(int argc, char** argv) {
                     local.l = phong_l;
 
                     std::array<gl::ClipVertex, 3> verts = {{
-                        {local.vertex(f, 0), local.tri[0]},
-                        {local.vertex(f, 1), local.tri[1]},
-                        {local.vertex(f, 2), local.tri[2]},
+                        {local.vertex(f, 0), local.tri[0].xyz()},
+                        {local.vertex(f, 1), local.tri[1].xyz()},
+                        {local.vertex(f, 2), local.tri[2].xyz()},
                     }};
 
                     int num_tris = 1;
@@ -110,9 +110,9 @@ int main(int argc, char** argv) {
                         if (signed_area < 0)
                             continue;
 
-                        local.tri[0] = tri[0].eye;
-                        local.tri[1] = tri[1].eye;
-                        local.tri[2] = tri[2].eye;
+                        local.tri[0] = {tri[0].eye.x(), tri[0].eye.y(), tri[0].eye.z(), 0};
+                        local.tri[1] = {tri[1].eye.x(), tri[1].eye.y(), tri[1].eye.z(), 0};
+                        local.tri[2] = {tri[2].eye.x(), tri[2].eye.y(), tri[2].eye.z(), 0};
                         gl::rasterize({tri[0].clip, tri[1].clip, tri[2].clip}, local, framebuffer);
                     }
                 }
