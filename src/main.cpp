@@ -23,7 +23,9 @@ int main(int argc, char** argv) {
 
     int width = 1280; // output image size
     int height = 720;
-    constexpr vec3 light{1, 1, 1}; // unit length direction to sun
+    vec3 light{1, 1, 1}; // unit length direction to sun
+    double e = 35;
+    double ambient = .3;
     cam::Camera camera{{-1, 0, 2}, {0, 0, 0}, {0, 1, 0}};
 
     gl::lookat(camera.eye, camera.center(), camera.up());
@@ -51,6 +53,7 @@ int main(int argc, char** argv) {
 
     ImVec2 viewport_size(width, height);
     auto model_index = -1;
+    auto phong_l = ((gl::ModelView * vec4{light.x(), light.y(), light.z(), 0}).norm());
 
     while (!WindowShouldClose()) {
         width = viewport_size.x;
@@ -75,7 +78,6 @@ int main(int argc, char** argv) {
 
         gl::init_zbuffer(width, height);
         std::fill(framebuffer.data.begin(), framebuffer.data.end(), gl::Color{0, 0, 0, 255});
-        auto phong_l = ((gl::ModelView * vec4{light.x(), light.y(), light.z(), 0}).norm());
         for (auto& model : models) {
             auto center = model.center();
             if (gl::is_visible(center, model.radius())) {
@@ -83,6 +85,8 @@ int main(int argc, char** argv) {
                 for (size_t f = 0; f < model.nfaces(); f++) {
                     PhongShader local = {model, light};
                     local.l = phong_l;
+                    local.e = e;
+                    local.ambient = ambient;
 
                     std::array<gl::ClipVertex, 3> verts = {{
                         {local.vertex(f, 0), local.tri[0], local.tri_uv[0], local.tri_nrm[0]},
@@ -293,6 +297,16 @@ int main(int argc, char** argv) {
                         camera.center().z());
             ImGui::Text("Up: %.3f, %.3f, %.3f", camera.up().x(), camera.up().y(), camera.up().z());
         }
+        ImGui::End();
+
+        ImGui::Begin("Shader");
+
+        if (ImGui::DragScalarN(
+                "Light XYZ", ImGuiDataType_Double, &light, 3, .01, NULL, NULL, "%.3f")) {
+            phong_l = ((gl::ModelView * vec4{light.x(), light.y(), light.z(), 0}).norm());
+        }
+        ImGui::DragScalar("Smoothness", ImGuiDataType_Double, &e, .01, NULL, NULL, "%.3f");
+        ImGui::DragScalar("Ambient", ImGuiDataType_Double, &ambient, .01, NULL, NULL, "%.3f");
         ImGui::End();
 
         rlImGuiEnd();

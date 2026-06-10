@@ -51,12 +51,12 @@ Or use the Zed task (`run-project`).
 - [x] Controlling Camera
 - [x] Loading Multiple Models 
   - [x] Support for multiple models in the same scene (e.g offsetting postion of each model, etc.)
-- [ ] ImGui to Control variables (e.g. Light direction, Roughness, etc.)
+- [x] ImGui to Control variables (e.g. Light direction, Roughness, etc.)
   - [x] Basic ImGui Setup
   - [x] Adding ability to load new models from ImGui 
-  - [ ] Adding controls for variables
+  - [x] Adding controls for variables
     - [x] Model position/rotation/scale
-    - [ ] Shader properties (e.g. Light direction, Roughness, etc.)
+    - [x] Shader properties (e.g. Light direction, Roughness, etc.)
     - [x] Camera position/rotation etc.
 
 ## License

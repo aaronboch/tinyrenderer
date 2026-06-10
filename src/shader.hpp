@@ -11,6 +11,8 @@ struct PhongShader : gl::IShader {
     vec4 tri_nrm[3];
     vec2 tri_uv[3];
     vec3 eye_pos{0., 0., 0.};
+    double e{};       // shininess exponent
+    double ambient{}; // ambient light intensity
 
     PhongShader(const gl::Model& m, const vec3 light) : model(m) {
         l = (gl::ModelView * vec4{light.x(), light.y(), light.z(), 0.}).norm();
@@ -29,11 +31,10 @@ struct PhongShader : gl::IShader {
     }
     virtual std::pair<bool, gl::Color> fragment(const vec3 bar, const vec3& clip_w) const {
         gl::Color gl_FragColor{255, 255, 255, 255};
-        double e = 35.;      // shininess exponent
-        double ambient = .3; // ambient light intensity
 
         double w_sum = bar.x() / clip_w[0] + bar.y() / clip_w[1] + bar.z() / clip_w[2];
-        vec3 bc = {bar.x() / clip_w[0] / w_sum, bar.y() / clip_w[1] / w_sum, bar.z() / clip_w[2] / w_sum};
+        vec3 bc = {
+            bar.x() / clip_w[0] / w_sum, bar.y() / clip_w[1] / w_sum, bar.z() / clip_w[2] / w_sum};
 
         if (model.has_normal_map()) {
             auto uv = bc.x() * tri_uv[0] + bc.y() * tri_uv[1] + bc.z() * tri_uv[2];
