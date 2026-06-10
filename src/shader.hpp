@@ -33,8 +33,7 @@ struct PhongShader : gl::IShader {
         double e = 35.;      // shininess exponent
         double ambient = .3; // ambient light intensity
 
-        if (model.has_uv_indicies() && model.has_normal_map()) {
-
+        if (model.has_normal_map()) {
             auto uv = bar.x() * tri_uv[0] + bar.y() * tri_uv[1] + bar.z() * tri_uv[2];
             auto n = (gl::ModelView.inverse_transpose().value() * model.normal(uv)).norm();
             vec4 l_4 = {l.x(), l.y(), l.z(), 0};
@@ -46,8 +45,12 @@ struct PhongShader : gl::IShader {
             auto v_4 = vec4{v.x(), v.y(), v.z(), 0};
             double s = r.dot(v_4);
             double spec = s > 0 ? pow(s, e) : 0.;
-
-            vec3 base{gl_FragColor.r / 255., gl_FragColor.g / 255., gl_FragColor.b / 255.};
+            vec3 base{};
+            if (model.has_texture()) {
+                base = model.tex(uv);
+            } else {
+                base = {gl_FragColor.r / 255., gl_FragColor.g / 255., gl_FragColor.b / 255.};
+            }
             vec3 color_f = base * (ambient + diff) + (vec3{1, 1, 1} * (spec));
             color_f = vec3{
                 std::min(1., color_f.x()), std::min(1., color_f.y()), std::min(1., color_f.z())};
@@ -70,8 +73,13 @@ struct PhongShader : gl::IShader {
             double s = r.dot(v);
             double spec = s > 0 ? pow(s, e) : 0.;
 
-            vec3 base{gl_FragColor.r / 255., gl_FragColor.g / 255., gl_FragColor.b / 255.};
-
+            vec3 base{};
+            if (model.has_texture()) {
+                auto uv = bar.x() * tri_uv[0] + bar.y() * tri_uv[1] + bar.z() * tri_uv[2];
+                base = model.tex(uv);
+            } else {
+                base = {gl_FragColor.r / 255., gl_FragColor.g / 255., gl_FragColor.b / 255.};
+            }
             vec3 color_f = base * (ambient + diff) + (vec3{1, 1, 1} * (spec));
 
             color_f = vec3{

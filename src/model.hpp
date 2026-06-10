@@ -49,7 +49,10 @@ namespace gl {
         [[nodiscard]]
         bool has_normal_map() const noexcept;
         [[nodiscard]]
+        bool has_texture() const noexcept;
+        [[nodiscard]]
         vec2 uv(int iface, int nthvert) const noexcept;
         [[nodiscard]] vec4 normal(vec2 uv) const noexcept;
+        [[nodiscard]] vec3 tex(vec2 uv) const noexcept;
     };
 } // namespace gl

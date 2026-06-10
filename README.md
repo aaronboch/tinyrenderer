@@ -35,7 +35,7 @@ Or use the Zed task (`run-project`).
   - [x] On faces
   - [x] On vertices
 - [x] Normal mapping
-- [ ] Texture mapping
+- [x] Texture mapping
 - [ ] Shadow mapping
 - [ ] Ambient occlusion
 

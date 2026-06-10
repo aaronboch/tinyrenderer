@@ -121,7 +121,10 @@ namespace gl {
         return vt.size() > 0 && f_tex.size() > 0;
     }
     bool Model::has_normal_map() const noexcept {
-        return normal_map.height() != 0;
+        return normal_map.height() != 0 && has_uv_indicies();
+    }
+    bool Model::has_texture() const noexcept {
+        return texture.height() != 0 && has_uv_indicies();
     }
     vec2 Model::uv(int iface, int nthvert) const noexcept {
         return vt[f_tex[iface * 3 + nthvert]];
@@ -134,5 +137,12 @@ namespace gl {
                 ((c.bgra[1] / 255.) * 2 - 1),
                 ((c.bgra[0] / 255.) * 2 - 1),
                 0};
+    }
+    vec3 Model::tex(vec2 uv) const noexcept {
+        TGAColor c = texture.get(uv.x() * texture.width(), (1 - uv.y()) * texture.height());
+
+        return {static_cast<double>(c.bgra[2] / 255.),
+                static_cast<double>(c.bgra[1] / 255.),
+                static_cast<double>(c.bgra[0] / 255.)};
     }
 } // namespace gl
