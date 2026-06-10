@@ -35,8 +35,11 @@ namespace gl {
                     vn.push_back({x, y, z});
             } else if (line.starts_with("vt ")) {
                 float x, y, z;
-                if (read_vec3(iss, x, y, z))
+                std::string label;
+                if (iss >> label >> x >> y) {
                     vt.push_back({x, y});
+                }
+
             } else if (line.starts_with("f ")) {
                 std::string token;
                 std::istringstream iss{line};

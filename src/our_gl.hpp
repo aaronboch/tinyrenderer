@@ -7,7 +7,9 @@
 namespace gl {
     struct ClipVertex {
         vec4 clip;
-        vec3 eye;
+        vec4 eye;
+        vec2 uv;
+        vec4 nrm;
     };
 
     struct Color {
@@ -44,7 +46,7 @@ namespace gl {
                         std::array<std::array<ClipVertex, 3>, 2>& out_tris) noexcept;
 
     struct IShader {
-        virtual std::pair<bool, Color> fragment(const vec3 bar) const = 0;
+        virtual std::pair<bool, Color> fragment(const vec3 bar, const vec3& clip_w) const = 0;
     };
 
     typedef std::array<vec4, 3> Triangle;

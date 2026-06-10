@@ -59,6 +59,8 @@ namespace gl {
         return {
             a.clip + t * (b.clip - a.clip), // clip-space
             a.eye + t * (b.eye - a.eye),    // eye-space
+            a.uv + t * (b.uv - a.uv),       // uv
+            a.nrm + t * (b.nrm - a.nrm),    // normal
         };
     }
     // clips the triangle against the near plane, returns the number of output triangles (0, 1 or 2)
@@ -134,7 +136,8 @@ namespace gl {
                 double old_z = aref.load(std::memory_order_relaxed);
                 while (z < old_z) {
                     if (aref.compare_exchange_weak(old_z, z, std::memory_order_relaxed)) {
-                        auto [discard, color] = shader.fragment(bc);
+                        vec3 clip_w = {clip[0].w(), clip[1].w(), clip[2].w()};
+                        auto [discard, color] = shader.fragment(bc, clip_w);
                         if (!discard)
                             framebuffer.set(x, y, color);
                         break;

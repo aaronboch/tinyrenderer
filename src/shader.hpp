@@ -27,13 +27,16 @@ struct PhongShader : gl::IShader {
         tri[vert] = gl_Position;                                          // in eye coordiantes
         return gl::Perspective * gl_Position;                             // in clip coords
     }
-    virtual std::pair<bool, gl::Color> fragment(const vec3 bar) const {
+    virtual std::pair<bool, gl::Color> fragment(const vec3 bar, const vec3& clip_w) const {
         gl::Color gl_FragColor{255, 255, 255, 255};
         double e = 35.;      // shininess exponent
         double ambient = .3; // ambient light intensity
 
+        double w_sum = bar.x() / clip_w[0] + bar.y() / clip_w[1] + bar.z() / clip_w[2];
+        vec3 bc = {bar.x() / clip_w[0] / w_sum, bar.y() / clip_w[1] / w_sum, bar.z() / clip_w[2] / w_sum};
+
         if (model.has_normal_map()) {
-            auto uv = bar.x() * tri_uv[0] + bar.y() * tri_uv[1] + bar.z() * tri_uv[2];
+            auto uv = bc.x() * tri_uv[0] + bc.y() * tri_uv[1] + bc.z() * tri_uv[2];
 
             // edge vectors
             auto e0 = tri[1] - tri[0];
@@ -42,7 +45,7 @@ struct PhongShader : gl::IShader {
             auto u1 = tri_uv[2] - tri_uv[0];
             mat<2, 4> E = {{{e0, e1}}};
             mat2 U = {u0, u1};
-            auto N = (bar.x() * tri_nrm[0] + bar.y() * tri_nrm[1] + bar.z() * tri_nrm[2]);
+            auto N = (bc.x() * tri_nrm[0] + bc.y() * tri_nrm[1] + bc.z() * tri_nrm[2]);
 
             auto inv = U.inverse();
             vec4 T_vec, B_vec;
@@ -65,7 +68,7 @@ struct PhongShader : gl::IShader {
             auto r = (2 * n * (n.dot(l)) - l);
             auto diff = std::max(0., n.dot(l));
 
-            auto P = (tri[0] * bar.x() + tri[1] * bar.y() + tri[2] * bar.z());
+            auto P = (tri[0] * bc.x() + tri[1] * bc.y() + tri[2] * bc.z());
             auto v = (eye_pos - P.xyz()).norm();
             auto v_4 = vec4{v.x(), v.y(), v.z(), 0};
             double s = r.dot(v_4);
@@ -85,14 +88,14 @@ struct PhongShader : gl::IShader {
             gl_FragColor.b = static_cast<uint8_t>(color_f.z() * 255);
         } else {
             gl_FragColor = {128, 128, 128, 255};
-            auto n = (bar.x() * tri_nrm[0] + bar.y() * tri_nrm[1] + bar.z() * tri_nrm[2]).xyz();
+            auto n = (bc.x() * tri_nrm[0] + bc.y() * tri_nrm[1] + bc.z() * tri_nrm[2]).xyz();
             auto r = (2 * n * (n.dot(l.xyz())) - l.xyz()).norm().xyz(); // reflection vec
 
             // diffuse light intensity
             auto diff = std::max(0., n.dot(l.xyz()));
             // spec light intensity
 
-            auto P = (tri[0] * bar.x() + tri[1] * bar.y() + tri[2] * bar.z()).xyz();
+            auto P = (tri[0] * bc.x() + tri[1] * bc.y() + tri[2] * bc.z()).xyz();
             auto v = (eye_pos - P).norm();
 
             double s = r.dot(v);
@@ -100,7 +103,7 @@ struct PhongShader : gl::IShader {
 
             vec3 base{};
             if (model.has_texture()) {
-                auto uv = bar.x() * tri_uv[0] + bar.y() * tri_uv[1] + bar.z() * tri_uv[2];
+                auto uv = bc.x() * tri_uv[0] + bc.y() * tri_uv[1] + bc.z() * tri_uv[2];
                 base = model.tex(uv);
             } else {
                 base = {gl_FragColor.r / 255., gl_FragColor.g / 255., gl_FragColor.b / 255.};
