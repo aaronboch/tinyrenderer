@@ -66,14 +66,14 @@ struct PhongShader : gl::IShader {
             mat4 D = {T_vec, B_vec, N, {0, 0, 0, 1}};
 
             auto n = (D.transpose() * model.normal(uv)).norm();
-            auto r = (2 * n * (n.dot(l)) - l);
             auto diff = std::max(0., n.dot(l));
 
             auto P = (tri[0] * bc.x() + tri[1] * bc.y() + tri[2] * bc.z());
-            auto v = (eye_pos - P.xyz()).norm();
-            auto v_4 = vec4{v.x(), v.y(), v.z(), 0};
-            double s = r.dot(v_4);
-            double spec = s > 0 ? pow(s, e) : 0.;
+            auto V = (eye_pos - P.xyz()).norm();
+
+            auto H = (l + vec4{V.x(), V.y(), V.z(), 0}).norm().xyz();
+            double spec = pow(std::max(0., n.xyz().dot(H)), e);
+
             vec3 base{};
             if (model.has_texture()) {
                 base = model.tex(uv);
@@ -90,17 +90,13 @@ struct PhongShader : gl::IShader {
         } else {
             gl_FragColor = {128, 128, 128, 255};
             auto n = (bc.x() * tri_nrm[0] + bc.y() * tri_nrm[1] + bc.z() * tri_nrm[2]).xyz();
-            auto r = (2 * n * (n.dot(l.xyz())) - l.xyz()).norm().xyz(); // reflection vec
-
-            // diffuse light intensity
             auto diff = std::max(0., n.dot(l.xyz()));
-            // spec light intensity
 
             auto P = (tri[0] * bc.x() + tri[1] * bc.y() + tri[2] * bc.z()).xyz();
-            auto v = (eye_pos - P).norm();
+            auto V = (eye_pos - P).norm();
 
-            double s = r.dot(v);
-            double spec = s > 0 ? pow(s, e) : 0.;
+            auto H = (l + vec4{V.x(), V.y(), V.z(), 0}).norm().xyz();
+            double spec = pow(std::max(0., n.dot(H)), e);
 
             vec3 base{};
             if (model.has_texture()) {

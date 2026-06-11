@@ -47,7 +47,7 @@ Or use the Zed task (`run-project`).
   - [x] General performance improvements
   - [x] Backface culling
   - [x] Object-level frustum culling
-  - [ ] Blinn-Phong reflection model
+  - [x] Blinn-Phong reflection model
 - [x] Controlling Camera
 - [x] Loading Multiple Models 
   - [x] Support for multiple models in the same scene (e.g offsetting postion of each model, etc.)
