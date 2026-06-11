@@ -37,7 +37,7 @@ Or use the Zed task (`run-project`).
 - [x] Normal mapping
   - [x] Tangent space normal mapping
 - [x] Texture mapping
-- [ ] Shadow mapping
+
 
 
 ## My additions
