@@ -1,5 +1,10 @@
 # Tinyrenderer
-A real-time software renderer in C++ built by following [ssloy's tinyrenderer course](https://haqr.eu/tinyrenderer/), extended with interactive rendering via Raylib, parallel rasterization using OpenMP, and an ImGui control panel for manipulating the scene at runtime.
+A real-time software renderer in C++ featuring interactive controls, parallel rasterization, and live scene manipulation. Built as an extension of ssloy's tinyrenderer course.
+
+## Screenshots
+![Diablo 3 model with normal mapping](screenshots/diablo3_pose_example.png)
+
+![African head model with Phong shading](screenshots/african_head_example.png)
 
 ## Building
 
@@ -12,8 +17,7 @@ cmake -B build/release && cmake --build build/release -j
 
 Or use the Zed task (`build-project`) if you're editing in Zed.
 
-### Windows
-Not tested — the build system should work with MSVC or MinGW, but you may hit issues.
+Linux & macOS only. Untested on Windows.
 
 ### Dependencies
 - CMake (used for building)
@@ -38,9 +42,7 @@ Or use the Zed task (`run-project`).
   - [x] Tangent space normal mapping
 - [x] Texture mapping
 
-
-
-## My additions
+## Custom Features
 - [x] Raylib instead of rendering out to one image.
 - [x] Performance optimizations (to allow real time rendering)
   - [x] Parallel face loop instead of small part in rasterize function.
@@ -48,7 +50,7 @@ Or use the Zed task (`run-project`).
   - [x] Backface culling
   - [x] Object-level frustum culling
   - [x] Blinn-Phong reflection model
-- [x] Controlling Camera
+- [x] Camera controls
 - [x] Loading Multiple Models 
   - [x] Support for multiple models in the same scene (e.g offsetting postion of each model, etc.)
 - [x] ImGui to Control variables (e.g. Light direction, Roughness, etc.)
